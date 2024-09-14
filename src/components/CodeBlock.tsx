@@ -8,13 +8,13 @@ import {
   allLangs,
   allLangsAlias,
 } from '@llm-ui/code';
-import { getSingletonHighlighter} from 'shiki';
+import { getSingletonHighlighter } from 'shiki';
 import { bundledLanguagesInfo } from 'shiki/langs';
 import { bundledThemes } from 'shiki/themes';
 import getWasm from 'shiki/wasm';
 
 const highlighter = loadHighlighter(
-    getSingletonHighlighter({
+  getSingletonHighlighter({
     langs: allLangs(bundledLanguagesInfo),
     langAlias: allLangsAlias(bundledLanguagesInfo),
     themes: Object.values(bundledThemes),
@@ -23,10 +23,9 @@ const highlighter = loadHighlighter(
 );
 
 const codeToHtmlOptions: CodeToHtmlOptions = {
-  theme: 'github-dark',
+  theme: 'night-owl', // A theme suitable for dark backgrounds
 };
 
-// Customize this component with your own styling
 export const CodeBlock: LLMOutputComponent = ({ blockMatch }) => {
   const { html, code } = useCodeBlockToHtml({
     markdownCodeBlock: blockMatch.output,
@@ -35,7 +34,7 @@ export const CodeBlock: LLMOutputComponent = ({ blockMatch }) => {
   });
 
   if (!html) {
-    // fallback to <pre> if Shiki is not loaded yet
+    // Fallback to <pre> if Shiki is not loaded yet
     return (
       <pre className="shiki">
         <code>{code}</code>

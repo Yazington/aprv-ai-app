@@ -41,7 +41,7 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen">
+    <div className="flex flex-col h-screen w-screen bg-black text-gray-200">
       <div className="flex-1 overflow-auto p-4">
         {messages.map((message, index) => (
           <div
@@ -51,10 +51,10 @@ function App() {
             }`}
           >
             <div
-              className={`inline-block px-4 py-2 rounded-lg ${
+              className={`inline-block px-4 py-2 rounded-lg max-w-xl ${
                 message.sender === 'user'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-black'
+                  ? 'bg-gray-700 text-white'
+                  : 'bg-gray-800 text-gray-200'
               }`}
             >
               {message.sender === 'assistant' ? (
@@ -66,11 +66,11 @@ function App() {
           </div>
         ))}
       </div>
-      <div className="p-4 border-t">
+      <div className="p-4 border-t border-gray-700">
         <div className="flex">
           <input
             type="text"
-            className="flex-1 border rounded px-4 py-2"
+            className="flex-1 bg-gray-800 border border-gray-700 rounded px-4 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-gray-500"
             placeholder="Type your message..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -83,7 +83,7 @@ function App() {
           />
           <button
             onClick={handleSend}
-            className="ml-2 px-4 py-2 bg-blue-600 text-white rounded"
+            className="ml-2 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 focus:outline-none"
           >
             Send
           </button>
@@ -113,7 +113,7 @@ const LLMOutputRenderer: React.FC<{ llmOutput: string }> = ({ llmOutput }) => {
   });
 
   return (
-    <div>
+    <div className="prose prose-invert">
       {blockMatches.map((blockMatch, index) => {
         const Component = blockMatch.block.component;
         return <Component key={index} blockMatch={blockMatch} />;
