@@ -13,11 +13,13 @@
     "@llm-ui/code": "^0.13.3",
     "@llm-ui/markdown": "^0.13.3",
     "@llm-ui/react": "^0.13.3",
+    "axios": "^1.7.7",
     "html-react-parser": "^5.1.16",
     "openai": "^4.61.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^9.0.1",
+    "react-query": "^3.39.3",
     "remark-gfm": "^4.0.0",
     "shiki": "^1.17.6"
   },
