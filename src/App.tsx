@@ -1,5 +1,5 @@
 // src/App.tsx
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useLLMOutput } from "@llm-ui/react";
 import {
   codeBlockLookBack,
@@ -10,60 +10,104 @@ import { markdownLookBack } from "@llm-ui/markdown";
 import { MarkdownComponent } from "./components/MarkdownComponent";
 import { CodeBlock } from "./components/CodeBlock";
 import "./index.css"; // Tailwind CSS
-import axios, { AxiosResponse } from "axios";
 import { QueryClient, QueryClientProvider } from "react-query";
 
 const queryClient = new QueryClient();
 
 interface Message {
+  id: number;
   sender: "user" | "assistant";
   content: string;
+  isStreamFinished?: boolean;
 }
+
 const baseUrl = "http://localhost:8000";
-axios.defaults.baseURL = baseUrl;
-axios.defaults.headers.post["Content-Type"] = "application/json";
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const messageIdRef = useRef(0);
 
-  // Simulate LLM response (replace this with actual API call)
-  const getLLMResponse = async (prompt: string): Promise<string> => {
-    // Placeholder response
-    return await axios
-      .post("/chat/generate", { message: prompt })
-      .then((response: AxiosResponse) => {
-        console.log("here:" + response);
-        return response.data;
-      })
-      .catch(console.log);
-    // return `You said: ${prompt}\n\n## Example Code\n\n\`\`\`typescript\nconsole.log('Hello, llm-ui!');\n\`\`\``;
+  const getLLMResponse = async (
+    prompt: string,
+    onData: (data: string) => void
+  ): Promise<void> => {
+    const response = await fetch(`${baseUrl}/chat/generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message: prompt }),
+    });
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+
+    while (!done) {
+      const { value, done: readerDone } = await reader!.read();
+      done = readerDone;
+      if (value) {
+        const chunk = decoder.decode(value);
+        onData(chunk);
+      }
+    }
   };
 
   const handleSend = async () => {
     if (input.trim() === "") return;
 
+    // Generate unique IDs for messages
+    const userMessageId = messageIdRef.current++;
+    const assistantMessageId = messageIdRef.current++;
+
     // Add user message
-    setMessages((prev) => [...prev, { sender: "user", content: input }]);
+    const userMessage: Message = {
+      id: userMessageId,
+      sender: "user",
+      content: input,
+    };
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
 
-    // Get LLM response
-    const response = await getLLMResponse(input);
+    // Add assistant message with empty content
+    const assistantMessage: Message = {
+      id: assistantMessageId,
+      sender: "assistant",
+      content: "",
+      isStreamFinished: false,
+    };
+    setMessages((prev) => [...prev, assistantMessage]);
 
-    // Add assistant message
-    setMessages((prev) => [
-      ...prev,
-      { sender: "assistant", content: response },
-    ]);
+    // Get LLM response and handle streaming data
+    await getLLMResponse(input, (chunk) => {
+      // Update assistant message content
+      setMessages((prev) =>
+        prev.map((message) =>
+          message.id === assistantMessageId
+            ? { ...message, content: message.content + chunk }
+            : message
+        )
+      );
+    });
+
+    // Mark the stream as finished
+    setMessages((prev) =>
+      prev.map((message) =>
+        message.id === assistantMessageId
+          ? { ...message, isStreamFinished: true }
+          : message
+      )
+    );
   };
 
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex flex-col h-screen w-screen bg-black text-gray-200">
         <div className="flex-1 overflow-auto p-4">
-          {messages.map((message, index) => (
+          {messages.map((message) => (
             <div
-              key={index}
+              key={message.id}
               className={`mb-4 ${
                 message.sender === "user" ? "text-right" : "text-left"
               }`}
@@ -76,7 +120,10 @@ function App() {
                 }`}
               >
                 {message.sender === "assistant" ? (
-                  <LLMOutputRenderer llmOutput={message.content} />
+                  <LLMOutputRenderer
+                    llmOutput={message.content}
+                    isStreamFinished={message.isStreamFinished || false}
+                  />
                 ) : (
                   <span>{message.content}</span>
                 )}
@@ -113,7 +160,10 @@ function App() {
 }
 
 // Component to render LLM output
-const LLMOutputRenderer: React.FC<{ llmOutput: string }> = ({ llmOutput }) => {
+const LLMOutputRenderer: React.FC<{
+  llmOutput: string;
+  isStreamFinished: boolean;
+}> = ({ llmOutput, isStreamFinished }) => {
   const { blockMatches } = useLLMOutput({
     llmOutput,
     fallbackBlock: {
@@ -128,7 +178,7 @@ const LLMOutputRenderer: React.FC<{ llmOutput: string }> = ({ llmOutput }) => {
         lookBack: codeBlockLookBack(),
       },
     ],
-    isStreamFinished: true, // Since we have the full response
+    isStreamFinished,
   });
 
   return (
