@@ -1,26 +1,30 @@
 import { useLLMOutput } from '@llm-ui/react';
+import React, { memo } from 'react';
 import { MarkdownComponent } from './MarkdownComponent';
 import { codeBlockLookBack, findCompleteCodeBlock, findPartialCodeBlock } from '@llm-ui/code';
 import { markdownLookBack } from '@llm-ui/markdown';
 
 import { CodeBlock } from './CodeBlock';
 
+const MemoizedCodeBlock = memo(CodeBlock);
+const MemoizedMarkdownComponent = memo(MarkdownComponent);
+
 export const LLMOutputRenderer: React.FC<{ llmOutput: string }> = ({ llmOutput }) => {
   const { blockMatches } = useLLMOutput({
     llmOutput,
     fallbackBlock: {
-      component: MarkdownComponent,
+      component: MemoizedMarkdownComponent,
       lookBack: markdownLookBack(),
     },
     blocks: [
       {
-        component: CodeBlock,
+        component: MemoizedCodeBlock,
         findCompleteMatch: findCompleteCodeBlock(),
         findPartialMatch: findPartialCodeBlock(),
         lookBack: codeBlockLookBack(),
       },
     ],
-    isStreamFinished: false,
+    isStreamFinished: true,
   });
 
   return (
