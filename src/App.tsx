@@ -1,144 +1,131 @@
-// src/App.tsx
-import React, { useState } from "react";
-import { useLLMOutput } from "@llm-ui/react";
-import {
-  codeBlockLookBack,
-  findCompleteCodeBlock,
-  findPartialCodeBlock,
-} from "@llm-ui/code";
-import { markdownLookBack } from "@llm-ui/markdown";
-import { MarkdownComponent } from "./components/MarkdownComponent";
-import { CodeBlock } from "./components/CodeBlock";
-import "./index.css"; // Tailwind CSS
-import axios, { AxiosResponse } from "axios";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { useEffect, useRef, useState } from 'react';
+import axios from 'axios';
+import './index.css'; // Tailwind CSS
+import MessageList from './components/MessageList';
+import InputSection from './components/InputSection';
+import { Message } from './types/Message';
 
-const queryClient = new QueryClient();
-
-interface Message {
-  sender: "user" | "assistant";
-  content: string;
-}
-const baseUrl = "http://localhost:8000";
+const baseUrl = 'http://localhost:9000';
 axios.defaults.baseURL = baseUrl;
-axios.defaults.headers.post["Content-Type"] = "application/json";
+axios.defaults.headers.post['Content-Type'] = 'application/json';
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
+  const [currentUserInput, setCurrentUserInput] = useState<string | null>(null);
+  const [currentModelOutput, setCurrentModelOutput] = useState<Message | null>(null);
+  const [isStreaming, setIsStreaming] = useState<boolean>(false);
+  const generateSourceRef = useRef<EventSource | null>(null);
+  // const currentModelOutputRef = useRef<Message | null>(null);
+  const bufferRef = useRef<string>(''); // Buffer to accumulate streamed data
 
-  // Simulate LLM response (replace this with actual API call)
-  const getLLMResponse = async (prompt: string): Promise<string> => {
-    // Placeholder response
-    return await axios
-      .post("/chat/generate", { message: prompt }, { responseType: "stream" })
-      .then((response: AxiosResponse) => {
-        console.log("here:" + response.data);
-        return response.data;
-      })
-      .catch(console.log);
-    // return `You said: ${prompt}\n\n## Example Code\n\n\`\`\`typescript\nconsole.log('Hello, llm-ui!');\n\`\`\``;
+  useEffect(() => {
+    return () => {
+      if (generateSourceRef.current) {
+        generateSourceRef.current.close();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      closeEventSource(); // Explicitly call this in case the component unmounts before streaming completes
+    };
+  }, []);
+
+  // // Adjust closeEventSource to handle both cases of being called inside useEffect and during error handling.
+  // const closeEventSource = (eventSource?: EventSource) => {
+  //   eventSource?.close();
+  // };
+
+  const closeEventSource = (eventSource?: EventSource) => {
+    if (!eventSource && generateSourceRef.current) {
+      eventSource = generateSourceRef.current;
+    }
+    eventSource?.close();
   };
 
-  const handleSend = async () => {
-    if (input.trim() === "") return;
-
-    // Add user message
-    setMessages((prev) => [...prev, { sender: "user", content: input }]);
-    setInput("");
-
-    // Get LLM response
-    const response = await getLLMResponse(input);
-
-    // Add assistant message
-    setMessages((prev) => [
-      ...prev,
-      { sender: "assistant", content: response },
-    ]);
-  };
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <div className="flex flex-col h-screen w-screen bg-black text-gray-200">
-        <div className="flex-1 overflow-auto p-4">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`mb-4 ${
-                message.sender === "user" ? "text-right" : "text-left"
-              }`}
-            >
-              <div
-                className={`inline-block px-4 py-2 rounded-lg max-w-xl ${
-                  message.sender === "user"
-                    ? "bg-gray-700 text-white"
-                    : "bg-gray-800 text-gray-200"
-                }`}
-              >
-                {message.sender === "assistant" ? (
-                  <LLMOutputRenderer llmOutput={message.content} />
-                ) : (
-                  <span>{message.content}</span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="p-4 border-t border-gray-700">
-          <div className="flex">
-            <input
-              type="text"
-              className="flex-1 bg-gray-800 border border-gray-700 rounded px-4 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-gray-500"
-              placeholder="Type your message..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-            />
-            <button
-              onClick={handleSend}
-              className="ml-2 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 focus:outline-none"
-            >
-              Send
-            </button>
-          </div>
-        </div>
-      </div>
-    </QueryClientProvider>
-  );
-}
-
-// Component to render LLM output
-const LLMOutputRenderer: React.FC<{ llmOutput: string }> = ({ llmOutput }) => {
-  const { blockMatches } = useLLMOutput({
-    llmOutput,
-    fallbackBlock: {
-      component: MarkdownComponent,
-      lookBack: markdownLookBack(),
-    },
-    blocks: [
+  const getModelResponseAndStreamTokens = async (firstPrompt: string): Promise<void> => {
+    // console.log(JSON.stringify({ prompt: firstPrompt }));
+    const response = await axios.post(
+      '/chat/create_prompt',
+      { prompt: firstPrompt },
       {
-        component: CodeBlock,
-        findCompleteMatch: findCompleteCodeBlock(),
-        findPartialMatch: findPartialCodeBlock(),
-        lookBack: codeBlockLookBack(),
-      },
-    ],
-    isStreamFinished: true, // Since we have the full response
-  });
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
+    if (response.status !== 200) {
+      throw new Error('Network response was not ok');
+    }
+
+    const { prompt }: { prompt: Message } = await response.data;
+    // Use the sessionId to stream responses
+    setIsStreaming(true);
+    setCurrentModelOutput({ content: '', is_from_human: false });
+    const generationSource = new EventSource(`${baseUrl}/chat/generate/${prompt.id}`);
+    generateSourceRef.current = generationSource;
+
+    setupEventHandlers(generationSource);
+  };
+
+  const setupEventHandlers = (generationSource: EventSource) => {
+    generationSource.onmessage = event => handleStreamData(event.data);
+    generationSource.onerror = error => handleError(error, generationSource);
+  };
+
+  const handleStreamData = (data: string) => {
+    // console.log(data);
+    if (data === '[DONE]') {
+      flushBuffer();
+      closeEventSource();
+      setIsStreaming(false);
+      return;
+    }
+
+    bufferRef.current += data; // Accumulate streamed data in the buffer
+    setCurrentModelOutput(previousOutput => ({ content: previousOutput?.content + data, is_from_human: false }));
+  };
+  // console.log(bufferRef);
+
+  const flushBuffer = () => {
+    const modelOutput = { content: bufferRef.current, is_from_human: false };
+    setCurrentModelOutput(modelOutput);
+    setMessages(previousMessages => [...previousMessages, modelOutput]);
+    bufferRef.current = ''; // Clear the buffer after flushing it into state
+  };
+
+  const handleError = (event: Event, generationSource: EventSource) => {
+    if (event instanceof ErrorEvent) {
+      console.error('generation source failed:', event.message);
+    } else {
+      console.error('generation source failed:', event);
+    }
+    generationSource.close();
+  };
+
+  const handleSend = () => {
+    if (!currentUserInput || currentUserInput.trim() === '') return;
+    setMessages([...messages, { content: currentUserInput, is_from_human: true }]);
+    getModelResponseAndStreamTokens(currentUserInput);
+    setCurrentUserInput('');
+  };
+  // console.log(currentModelOutput?.content);
   return (
-    <div className="prose prose-invert">
-      {blockMatches.map((blockMatch, index) => {
-        const Component = blockMatch.block.component;
-        return <Component key={index} blockMatch={blockMatch} />;
-      })}
+    <div className="flex flex-col h-screen w-screen bg-black text-gray-200">
+      <MessageList
+        messages={messages}
+        isStreaming={isStreaming}
+        currentModelOutput={currentModelOutput}
+      />
+      <InputSection
+        input={currentUserInput}
+        setInput={setCurrentUserInput}
+        handleSend={handleSend}
+      />
     </div>
   );
-};
+}
 
 export default App;
