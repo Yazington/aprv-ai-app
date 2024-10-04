@@ -9,14 +9,17 @@ const baseUrl = 'http://localhost:9000';
 axios.defaults.baseURL = baseUrl;
 axios.defaults.headers.post['Content-Type'] = 'application/json';
 
+interface StreamedContent {
+  content: string;
+}
+
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentUserInput, setCurrentUserInput] = useState<string | null>(null);
   const [currentModelOutput, setCurrentModelOutput] = useState<Message | null>(null);
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const generateSourceRef = useRef<EventSource | null>(null);
-  // const currentModelOutputRef = useRef<Message | null>(null);
-  const bufferRef = useRef<string>(''); // Buffer to accumulate streamed data
 
   useEffect(() => {
     return () => {
@@ -28,14 +31,17 @@ function App() {
 
   useEffect(() => {
     return () => {
-      closeEventSource(); // Explicitly call this in case the component unmounts before streaming completes
+      closeEventSource();
     };
   }, []);
-
-  // // Adjust closeEventSource to handle both cases of being called inside useEffect and during error handling.
-  // const closeEventSource = (eventSource?: EventSource) => {
-  //   eventSource?.close();
-  // };
+  // console.log('too much logs');
+  useEffect(() => {
+    if (currentModelOutput?.content.includes('[DONE-STREAMING-APRV-AI]')) {
+      const newContent = currentModelOutput.content.replace('[DONE-STREAMING-APRV-AI]', '');
+      setMessages([...messages, { content: newContent, conversation_id: currentModelOutput.conversation_id, is_from_human: false }]);
+      setCurrentModelOutput(null);
+    }
+  }, [currentModelOutput]);
 
   const closeEventSource = (eventSource?: EventSource) => {
     if (!eventSource && generateSourceRef.current) {
@@ -45,10 +51,9 @@ function App() {
   };
 
   const getModelResponseAndStreamTokens = async (firstPrompt: string): Promise<void> => {
-    // console.log(JSON.stringify({ prompt: firstPrompt }));
     const response = await axios.post(
       '/chat/create_prompt',
-      { prompt: firstPrompt },
+      { prompt: firstPrompt, conversation_id: null },
       {
         headers: {
           'Content-Type': 'application/json',
@@ -60,40 +65,41 @@ function App() {
       throw new Error('Network response was not ok');
     }
 
-    const { prompt }: { prompt: Message } = await response.data;
+    const message: Message = await response.data;
+    // console.log(message);
+    setConversationId(message.conversation_id);
     // Use the sessionId to stream responses
     setIsStreaming(true);
-    setCurrentModelOutput({ content: '', is_from_human: false });
-    const generationSource = new EventSource(`${baseUrl}/chat/generate/${prompt.id}`);
+    setCurrentModelOutput({ content: '', is_from_human: false, conversation_id: message.conversation_id ?? null });
+    const generationSource = new EventSource(`${baseUrl}/chat/generate/${message.message_id}`);
     generateSourceRef.current = generationSource;
 
     setupEventHandlers(generationSource);
   };
 
   const setupEventHandlers = (generationSource: EventSource) => {
-    generationSource.onmessage = event => handleStreamData(event.data);
+    generationSource.onmessage = event => handleStreamData(event);
     generationSource.onerror = error => handleError(error, generationSource);
   };
 
-  const handleStreamData = (data: string) => {
-    // console.log(data);
-    if (data === '[DONE]') {
-      flushBuffer();
-      closeEventSource();
-      setIsStreaming(false);
-      return;
+  const handleStreamData = (event: any) => {
+    const data: StreamedContent = JSON.parse(event.data);
+    const { content } = data;
+    // console.log('Received data:', JSON.stringify(data));
+
+    if (data) {
+      setCurrentModelOutput(previousOutput => ({
+        content: previousOutput?.content + content,
+        is_from_human: false,
+        conversation_id: conversationId,
+      }));
     }
 
-    bufferRef.current += data; // Accumulate streamed data in the buffer
-    setCurrentModelOutput(previousOutput => ({ content: previousOutput?.content + data, is_from_human: false }));
-  };
-  // console.log(bufferRef);
-
-  const flushBuffer = () => {
-    const modelOutput = { content: bufferRef.current, is_from_human: false };
-    setCurrentModelOutput(modelOutput);
-    setMessages(previousMessages => [...previousMessages, modelOutput]);
-    bufferRef.current = ''; // Clear the buffer after flushing it into state
+    if (content.includes('[DONE-STREAMING-APRV-AI]')) {
+      setIsStreaming(false);
+      closeEventSource();
+      return;
+    }
   };
 
   const handleError = (event: Event, generationSource: EventSource) => {
@@ -107,11 +113,10 @@ function App() {
 
   const handleSend = () => {
     if (!currentUserInput || currentUserInput.trim() === '') return;
-    setMessages([...messages, { content: currentUserInput, is_from_human: true }]);
+    setMessages([...messages, { content: currentUserInput, is_from_human: true, conversation_id: conversationId }]);
     getModelResponseAndStreamTokens(currentUserInput);
     setCurrentUserInput('');
   };
-  // console.log(currentModelOutput?.content);
   return (
     <div className="flex flex-col h-screen w-screen bg-black text-gray-200">
       <MessageList
