@@ -34,7 +34,7 @@ function App() {
       closeEventSource();
     };
   }, []);
-  // console.log('too much logs');
+
   useEffect(() => {
     if (currentModelOutput?.content.includes('[DONE-STREAMING-APRV-AI]')) {
       const newContent = currentModelOutput.content.replace('[DONE-STREAMING-APRV-AI]', '');
@@ -53,7 +53,7 @@ function App() {
   const getModelResponseAndStreamTokens = async (firstPrompt: string): Promise<void> => {
     const response = await axios.post(
       '/chat/create_prompt',
-      { prompt: firstPrompt, conversation_id: null },
+      { prompt: firstPrompt, conversation_id: conversationId ?? null },
       {
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +66,6 @@ function App() {
     }
 
     const message: Message = await response.data;
-    // console.log(message);
     setConversationId(message.conversation_id);
     // Use the sessionId to stream responses
     setIsStreaming(true);
@@ -85,7 +84,6 @@ function App() {
   const handleStreamData = (event: any) => {
     const data: StreamedContent = JSON.parse(event.data);
     const { content } = data;
-    // console.log('Received data:', JSON.stringify(data));
 
     if (data) {
       setCurrentModelOutput(previousOutput => ({

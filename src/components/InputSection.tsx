@@ -14,7 +14,6 @@ const InputSection = ({ input, setInput, handleSend }: Props) => {
           value={input ? input : ''}
           onChange={e => {
             setInput(e.target.value);
-            console.log('Input changed:', e.target.value); // Debugging
           }}
           onKeyDown={e => {
             if (e.key === 'Enter' && !e.shiftKey) {
