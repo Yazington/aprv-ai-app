@@ -20,6 +20,53 @@ function App() {
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const generateSourceRef = useRef<EventSource | null>(null);
+  // const [file, setFile] = useState<File | null>(null);
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) return;
+
+    // setFile(event.target.files[0]);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', event.target.files[0]); // Ensure file is not null
+
+      await axios.post('/upload/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      alert('Image uploaded successfully!');
+    } catch (error) {
+      console.error(error);
+      alert('Failed to upload image.');
+    }
+  };
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('file', event.target.files[0]); // Ensure file is not null
+
+      let uploadUrl = '/upload/image';
+      if (event.target.files[0].type.startsWith('application/pdf')) {
+        uploadUrl = '/upload/pdf';
+      }
+
+      await axios.post(uploadUrl, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      alert('File uploaded successfully!');
+    } catch (error) {
+      console.error(error);
+      alert('Failed to upload file.');
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -115,6 +162,7 @@ function App() {
     getModelResponseAndStreamTokens(currentUserInput);
     setCurrentUserInput('');
   };
+
   return (
     <div className="flex flex-col h-screen w-screen bg-black text-gray-200">
       <MessageList
@@ -126,6 +174,10 @@ function App() {
         input={currentUserInput}
         setInput={setCurrentUserInput}
         handleSend={handleSend}
+      />
+      <input
+        type="file"
+        onChange={handleFileUpload}
       />
     </div>
   );
