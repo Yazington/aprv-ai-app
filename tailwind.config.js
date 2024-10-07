@@ -5,7 +5,13 @@ module.exports = {
     './src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        neuropolitical: ['Neuropolitical'],
+        teko: ['Teko'],
+        paji: ['"Baloo Paaji 2"']
+      },
+    },
   },
   plugins: [],
 }

@@ -19,3 +19,17 @@
 .custom-read-the-docs {
   color: #888;
 }
+
+
+body {
+  @apply font-neuropolitical;
+}
+
+
+/* @font-face {
+  font-family: 'Neuropolitical';
+  src: url('/fonts/neuropolitical-rg.woff2') format('woff2'),
+       url('/fonts/neuropolitical-rg.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+} */
