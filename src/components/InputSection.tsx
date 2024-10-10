@@ -31,7 +31,7 @@ const InputSection = ({ input, setInput, handleSend }: Props) => {
       <div className="flex">
         <textarea
           ref={textareaRef}
-          className="flex-1 bg-gray-800 border border-gray-700 rounded px-4 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-gray-500 max-h-[300px] resize-none"
+          className="flex-1  bg-gray-900 border border-gray-700 rounded px-4 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-gray-500 max-h-[300px] resize-none"
           placeholder="Type your message..."
           value={input ? input : ''}
           onChange={e => handleInputChange(e)}
@@ -44,7 +44,7 @@ const InputSection = ({ input, setInput, handleSend }: Props) => {
         />
         <button
           onClick={handleSend}
-          className="ml-2 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 focus:outline-none"
+          className="ml-2 px-4 py-2 bg-gray-700 text-white hover:bg-gray-600 focus:outline-none rounded-xl"
         >
           Send
         </button>

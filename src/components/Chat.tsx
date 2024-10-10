@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import MessageList from './MessageList';
 import { Message } from '../types/Message';
-import axios from 'axios';
 import InputSection from './InputSection';
+import axios from 'axios';
+import { apiClient } from '../services/axiosConfig';
 
 interface StreamedContent {
   content: string;
@@ -46,7 +47,7 @@ export default () => {
   };
 
   const getModelResponseAndStreamTokens = async (firstPrompt: string): Promise<void> => {
-    const response = await axios.post(
+    const response = await apiClient.post(
       '/chat/create_prompt',
       { prompt: firstPrompt, conversation_id: conversationId ?? null },
       {
@@ -65,7 +66,10 @@ export default () => {
     // Use the sessionId to stream responses
     setIsStreaming(true);
     setCurrentModelOutput({ content: '', is_from_human: false, conversation_id: message.conversation_id ?? null });
-    const generationSource = new EventSource(`${axios.defaults.baseURL}/chat/generate/${message.message_id}`);
+    const generationSource = new EventSource(
+      `${apiClient.defaults.baseURL}/chat/generate/${message.message_id}?access_token=${localStorage.getItem('access_token')}&user_id=${localStorage.getItem('user_id')}`
+    );
+
     generateSourceRef.current = generationSource;
 
     setupEventHandlers(generationSource);
@@ -112,7 +116,7 @@ export default () => {
   };
 
   return (
-    <div className="flex flex-1 flex-col flex-grow w-100 h-100 ">
+    <div className="flex flex-1 flex-grow flex-col">
       <MessageList
         messages={messages}
         isStreaming={isStreaming}
