@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
 // export const getTokenExpiration = (token: string) => {
@@ -54,6 +54,35 @@ apiClient.interceptors.request.use(
     return config;
   },
   error => {
+    return Promise.reject(error);
+  }
+);
+
+// Intercept responses to update local storage if necessary
+apiClient.interceptors.response.use(
+  response => {
+    // console.log(response);
+    if (response.status === 401) {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('exp');
+      localStorage.removeItem('user_id');
+    }
+
+    return response;
+  },
+  (error: AxiosError) => {
+    // console.log(error.status);
+    // console.log(JSON.stringify(error));
+    // Handle response errors, such as token expiration or unauthorized access
+    if (error.status === 401 || (error.response && error.response.status === 401)) {
+      console.error('Unauthorized, possibly due to expired token');
+      // Optional: You could clear localStorage or take other actions
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('exp');
+      localStorage.removeItem('user_id');
+      window.dispatchEvent(new StorageEvent('storage'));
+    }
+
     return Promise.reject(error);
   }
 );

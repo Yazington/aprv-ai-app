@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import MessageList from './MessageList';
 import { Message } from '../types/Message';
 import InputSection from './InputSection';
-import axios from 'axios';
 import { apiClient } from '../services/axiosConfig';
 
 interface StreamedContent {
@@ -26,6 +25,9 @@ export default () => {
   }, []);
 
   useEffect(() => {
+    if (!conversationId) {
+      localStorage.removeItem('current_conversation_id');
+    }
     return () => {
       closeEventSource();
     };
@@ -63,6 +65,10 @@ export default () => {
 
     const message: Message = await response.data;
     setConversationId(message.conversation_id);
+    if (message.conversation_id) {
+      localStorage.setItem('current_conversation_id', message.conversation_id);
+    }
+
     // Use the sessionId to stream responses
     setIsStreaming(true);
     setCurrentModelOutput({ content: '', is_from_human: false, conversation_id: message.conversation_id ?? null });

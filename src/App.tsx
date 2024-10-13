@@ -8,7 +8,39 @@ import { apiClient } from './services/axiosConfig';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const accessToken = localStorage.getItem('access_token');
+  const [accessToken, setAccessToken] = useState<string | null>(localStorage.getItem('access_token'));
+
+  useEffect(() => {
+    // Add 'dark' class to the root to apply dark mode by default
+    document.documentElement.classList.add('dark');
+  }, []);
+
+  // Sync state with localStorage for access token
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      console.log('here');
+      const token = localStorage.getItem('access_token');
+      const expirationDate = localStorage.getItem('exp');
+
+      if (!token || (expirationDate && parseFloat(expirationDate) < Date.now() / 1000)) {
+        setIsLoggedIn(false);
+      } else {
+        setIsLoggedIn(true);
+      }
+      setAccessToken(token); // Sync the access token state with localStorage
+    };
+
+    // Run the checkLoginStatus once when the component mounts
+    checkLoginStatus();
+
+    // Add an event listener to listen for storage changes in the same tab or across tabs
+    window.addEventListener('storage', checkLoginStatus);
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('storage', checkLoginStatus);
+    };
+  }, []);
 
   useEffect(() => {
     if (!accessToken) {
@@ -26,6 +58,13 @@ function App() {
     }
   }, [accessToken]);
 
+  function logout() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('exp');
+    localStorage.removeItem('user_id');
+    setIsLoggedIn(false);
+    setAccessToken(null); // Update state to trigger rerender
+  }
   const handleSuccess = (credentialResponse: CredentialResponse) => {
     const auth_token = credentialResponse.credential;
     if (!auth_token) {
@@ -42,19 +81,13 @@ function App() {
           localStorage.setItem('user_id', response.data.user_id);
           setIsLoggedIn(true);
         } else {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('exp');
-          localStorage.removeItem('user_id');
-          setIsLoggedIn(false);
+          logout();
           alert('Server issue');
           throw new Error('Server issue');
         }
       })
       .catch(error => {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('exp');
-        localStorage.removeItem('user_id');
-        setIsLoggedIn(false);
+        logout();
         console.error('Error during login:', error);
       });
   };
@@ -72,7 +105,7 @@ function App() {
         </div>
       )}
       {isLoggedIn && (
-        <div className="flex h-screen w-screen content-center justify-center bg-black font-paji font-extralight tracking-wide text-gray-200 subpixel-antialiased">
+        <div className="flex h-screen w-screen content-center justify-center font-paji font-extralight tracking-wide text-textPrimary subpixel-antialiased dark:bg-darkBg3">
           <ContractChecks />
           <Chat />
           <Upload setIsLoggedIn={setIsLoggedIn} />

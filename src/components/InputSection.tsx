@@ -27,27 +27,29 @@ const InputSection = ({ input, setInput, handleSend }: Props) => {
   };
 
   return (
-    <div className="p-4 border-t border-gray-700">
-      <div className="flex">
-        <textarea
-          ref={textareaRef}
-          className="flex-1  bg-gray-900 border border-gray-700 rounded px-4 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-gray-500 max-h-[300px] resize-none"
-          placeholder="Type your message..."
-          value={input ? input : ''}
-          onChange={e => handleInputChange(e)}
-          onKeyDown={e => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-        />
-        <button
-          onClick={handleSend}
-          className="ml-2 px-4 py-2 bg-gray-700 text-white hover:bg-gray-600 focus:outline-none rounded-xl"
-        >
-          Send
-        </button>
+    <div className="flex w-full basis-1/5">
+      <div className="flex basis-full">
+        <div className="flex basis-full">
+          <textarea
+            ref={textareaRef}
+            className="max-h-[300px] flex-1 resize-none rounded border border-darkBg1 bg-darkBg1 px-4 py-2 text-textPrimary placeholder-textTert shadow-md shadow-black focus:outline-none"
+            placeholder="Type your message..."
+            value={input ? input : ''}
+            onChange={e => handleInputChange(e)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+          />
+          <button
+            onClick={handleSend}
+            className="ml-2 max-h-[50px] rounded-xl bg-buttonBlack px-4 py-2 font-bold text-textSecondary transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-slate-900"
+          >
+            Send
+          </button>
+        </div>
       </div>
     </div>
   );

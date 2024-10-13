@@ -63,17 +63,16 @@ export default ({ setIsLoggedIn }: Props) => {
   };
   // Giving percentage size for this will add sliding window -> we can fix it by making sure the sizes of element within the container arent overflowing
   return (
-    <div className="flex h-screen grid-cols-1 flex-col content-center justify-center divide-y rounded-xl border-l border-gray-700">
+    <div className="flex h-screen grid-cols-1 flex-col content-center justify-center rounded-xl shadow-lg shadow-black">
       <div className="flex flex-[0.5] items-center justify-center">
         <button
-          className="max-h-10 rounded-full bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+          className="rounded-full bg-buttonBlack px-4 py-2 font-bold text-textSecondary transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-slate-900"
           onClick={logout}
         >
           Log Out
         </button>
       </div>
       <div className="flex max-h-[200px] overflow-y-auto">
-        {' '}
         {conversations.length > 0 && (
           <ul className="w-full list-inside list-disc pl-0">
             {conversations.map((conversation, index) => (
@@ -81,7 +80,7 @@ export default ({ setIsLoggedIn }: Props) => {
                 key={`conversation ${index}`}
                 className="flex list-none flex-col border-[0.5px] border-r-amber-200 hover:bg-sky-700"
               >
-                <button className="rounded-lg bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75 dark:bg-indigo-700 dark:text-gray-200 dark:hover:bg-indigo-800">
+                <button className="rounded-full bg-buttonBlack px-4 py-2 font-bold text-textSecondary transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-slate-900">
                   conversation id: {conversation.id}
                 </button>
               </li>

@@ -27,7 +27,7 @@ const MessagesSection = ({ messages, isStreaming, currentModelOutput }: Props) =
           className={`mb-4 ${message.is_from_human ? 'text-right' : 'text-left'} `}
         >
           <div
-            className={`inline-block px-4 py-2 rounded-lg max-w-xl ${message.is_from_human ? 'bg-gray-700 text-white' : 'bg-gray-800 text-gray-200'}`}
+            className={`inline-block max-w-xl rounded-lg px-4 py-2 ${message.is_from_human ? 'bg-gray-700 text-white' : 'bg-gray-800 text-gray-200'}`}
           >
             {message.is_from_human ? <div>{message.content}</div> : <LLMOutputRenderer llmOutput={message.content} />}
           </div>
@@ -35,7 +35,7 @@ const MessagesSection = ({ messages, isStreaming, currentModelOutput }: Props) =
       ))}
       {isStreaming && currentModelOutput && (
         <div className={`mb-4 text-left`}>
-          <div className={`inline-block px-4 py-2 rounded-lg max-w-xl bg-gray-800 text-gray-200`}>
+          <div className={`inline-block max-w-xl rounded-lg bg-gray-800 px-4 py-2 text-gray-200`}>
             <LLMOutputRenderer llmOutput={currentModelOutput.content} />
           </div>
         </div>
