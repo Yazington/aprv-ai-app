@@ -37,12 +37,12 @@ export default ({ setIsLoggedIn }: Props) => {
         const formData = new FormData();
         formData.append('file', file);
 
-        let uploadUrl = '/upload/image';
+        let uploadUrl = `/upload/image?conversation_id=${localStorage.getItem('current_conversation_id')}`;
         if (file.type === 'application/pdf') {
-          uploadUrl = '/upload/pdf';
+          uploadUrl = `/upload/pdf?conversation_id=${localStorage.getItem('current_conversation_id')}`;
         }
 
-        await apiClient.post(uploadUrl, formData, {
+        const response = await apiClient.post(uploadUrl, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -51,6 +51,10 @@ export default ({ setIsLoggedIn }: Props) => {
           setDesignFiles([...designFiles, file]);
         } else {
           setOtherFiles([...otherFiles, file]);
+        }
+
+        if (response.data) {
+          localStorage.setItem('current_conversation_id', response.data.conversation_id);
         }
 
         console.log(`File ${i + 1} uploaded successfully!`);
