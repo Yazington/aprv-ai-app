@@ -11,17 +11,54 @@ export default () => {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [processingHasStarted, setProcessingHasStarted] = useState<boolean>(false);
 
+  // Function to check the process status
+  const checkProcessStatus = async (conversationId: string) => {
+    try {
+      const response = await apiClient.get(`/conversations/process-status?conversation_id=${conversationId}`);
+      if (response.status === 202) {
+        // The task is still in progress, so we will continue polling
+        setTimeout(() => checkProcessStatus(conversationId), 2000); // Poll every 2 seconds
+      } else if (response.status === 200) {
+        // The task is complete, now fetch the result
+        const taskId = response.data.task_id;
+        await getProcessResult(taskId);
+      }
+    } catch (e) {
+      console.error('Error checking process status', e);
+    }
+  };
+
+  // Function to get the process result
+  const getProcessResult = async (taskId: string) => {
+    try {
+      const response = await apiClient.get(`/conversations/process-result?task_id=${taskId}`);
+      if (response.status === 200) {
+        setContractChecks(response.data); // Assuming the response is the file or review in JSON format
+        setIsProcessing(false); // Stop showing the loading indicator
+      }
+    } catch (e) {
+      console.error('Error fetching process result', e);
+    }
+  };
+
   const processDesign = async () => {
     const currentConversationId = localStorage.getItem('current_conversation_id');
+    if (!currentConversationId) {
+      console.error('No conversation ID found');
+      return;
+    }
 
     try {
       const response = await apiClient.get(`/conversations/process-design?conversation_id=${currentConversationId}`);
       if (response.status === 200) {
         setProcessingHasStarted(true);
         setIsProcessing(true);
+
+        // Start polling to check the task status
+        checkProcessStatus(currentConversationId);
       }
     } catch (e) {
-      console.log(e);
+      console.error('Error starting the process', e);
     }
   };
 

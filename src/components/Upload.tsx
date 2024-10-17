@@ -21,6 +21,14 @@ export default ({ setIsLoggedIn }: Props) => {
     }
   }, [userId]);
 
+  const loadConversation = (selected_conversation_id: string | null) => {
+    if (!selected_conversation_id) {
+      return;
+    }
+    localStorage.setItem('current_conversation_id', selected_conversation_id);
+    window.dispatchEvent(new StorageEvent('conversation_changed'));
+  };
+
   const logout = () => {
     setIsLoggedIn(false);
     localStorage.removeItem('access_token');
@@ -76,15 +84,18 @@ export default ({ setIsLoggedIn }: Props) => {
           Log Out
         </button>
       </div>
-      <div className="flex max-h-[200px] overflow-y-auto">
+      <div className="flex max-h-[200px] overflow-y-auto bg-darkBg2">
         {conversations.length > 0 && (
           <ul className="w-full list-inside list-disc pl-0">
             {conversations.map((conversation, index) => (
               <li
                 key={`conversation ${index}`}
-                className="flex list-none flex-col border-[0.5px] border-r-amber-200 hover:bg-sky-700"
+                className="mb-2 flex list-none flex-col"
               >
-                <button className="rounded-full bg-buttonBlack px-4 py-2 font-bold text-textSecondary transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-slate-900">
+                <button
+                  className="transform rounded-lg bg-buttonBlack px-3 py-1 text-sm font-medium text-textSecondary transition hover:bg-slate-800"
+                  onClick={() => loadConversation(conversation.id)}
+                >
                   conversation id: {conversation.id}
                 </button>
               </li>

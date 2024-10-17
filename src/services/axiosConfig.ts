@@ -19,7 +19,7 @@ export const getUserId = (token: string) => {
 
 // Create an Axios instance
 export const apiClient = axios.create({
-  baseURL: 'http://localhost:9000',
+  baseURL: 'http://localhost:8100',
   headers: {
     'Content-Type': 'application/json',
   },

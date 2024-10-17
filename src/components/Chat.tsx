@@ -17,6 +17,23 @@ export default () => {
   const generateSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
+    const updateCurrentConversation = async () => {
+      const conversationId = localStorage.getItem('current_conversation_id');
+      setConversationId(conversationId);
+      const messages = await apiClient.get(`/conversations/conversation-messages?conversation_id=${conversationId}`);
+      console.log('messages: ' + JSON.stringify(messages.data));
+      setMessages(messages.data);
+    };
+    // Add an event listener to listen for storage changes in the same tab or across tabs
+    window.addEventListener('conversation_changed', updateCurrentConversation);
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('conversation_changed', updateCurrentConversation);
+    };
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (generateSourceRef.current) {
         generateSourceRef.current.close();
@@ -62,8 +79,12 @@ export default () => {
     if (response.status !== 200) {
       throw new Error('Network response was not ok');
     }
-
-    const message: Message = await response.data;
+    const message: Message = {
+      id: response.data.message_id,
+      conversation_id: response.data.conversation_id,
+      content: response.data.prompt,
+      is_from_human: true,
+    };
     setConversationId(message.conversation_id);
     if (message.conversation_id) {
       localStorage.setItem('current_conversation_id', message.conversation_id);
@@ -73,7 +94,7 @@ export default () => {
     setIsStreaming(true);
     setCurrentModelOutput({ content: '', is_from_human: false, conversation_id: message.conversation_id ?? null });
     const generationSource = new EventSource(
-      `${apiClient.defaults.baseURL}/chat/generate/${message.message_id}?access_token=${localStorage.getItem('access_token')}&user_id=${localStorage.getItem('user_id')}`
+      `${apiClient.defaults.baseURL}/chat/generate/${message.id}?access_token=${localStorage.getItem('access_token')}&user_id=${localStorage.getItem('user_id')}`
     );
 
     generateSourceRef.current = generationSource;
