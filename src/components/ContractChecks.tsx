@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { apiClient } from '../services/axiosConfig';
+import { useConversationStore } from '../stores/conversationsStore';
 
 interface ContractCheck {
   thumbnail_url: string;
@@ -10,6 +11,7 @@ export default () => {
   const [contractChecks, setContractChecks] = useState<ContractCheck[]>([]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [processingHasStarted, setProcessingHasStarted] = useState<boolean>(false);
+  const currentlySelectedConversationId = useConversationStore(store => store.selectedConversationId);
 
   // Function to check the process status
   const checkProcessStatus = async (conversationId: string) => {
@@ -42,20 +44,19 @@ export default () => {
   };
 
   const processDesign = async () => {
-    const currentConversationId = localStorage.getItem('current_conversation_id');
-    if (!currentConversationId) {
+    if (!currentlySelectedConversationId) {
       console.error('No conversation ID found');
       return;
     }
 
     try {
-      const response = await apiClient.get(`/conversations/process-design?conversation_id=${currentConversationId}`);
+      const response = await apiClient.get(`/conversations/process-design?conversation_id=${currentlySelectedConversationId}`);
       if (response.status === 200) {
         setProcessingHasStarted(true);
         setIsProcessing(true);
 
         // Start polling to check the task status
-        checkProcessStatus(currentConversationId);
+        checkProcessStatus(currentlySelectedConversationId);
       }
     } catch (e) {
       console.error('Error starting the process', e);

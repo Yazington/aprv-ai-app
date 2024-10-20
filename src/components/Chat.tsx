@@ -1,37 +1,90 @@
-import { useEffect, useRef, useState } from 'react';
-import MessageList from './MessageList';
+import { useEffect, useRef } from 'react';
 import { Message } from '../types/Message';
 import InputSection from './InputSection';
 import { apiClient } from '../services/axiosConfig';
+import { useShallow } from 'zustand/react/shallow';
+import { useConversationStore } from '../stores/conversationsStore';
+import { useAuthStore } from '../stores/authStore';
+import { useBufferedStreaming } from '../hooks/useBufferedStreaming';
+import ReactMarkdown from 'react-markdown';
+
+import remarkGfm from 'remark-gfm';
 
 interface StreamedContent {
   content: string;
 }
 
-export default () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [currentUserInput, setCurrentUserInput] = useState<string | null>(null);
-  const [currentModelOutput, setCurrentModelOutput] = useState<Message | null>(null);
-  const [isStreaming, setIsStreaming] = useState<boolean>(false);
-  const [conversationId, setConversationId] = useState<string | null>(null);
+// Component to render all previous messages
+const PreviousMessages = ({ messages }: { messages: Message[] }) => {
+  return (
+    <div className="flex flex-col">
+      {messages.map((message, index) => (
+        <div className={`flex basis-full p-5 ${message.is_from_human ? 'justify-end' : ''} `}>
+          <div className={`${message.is_from_human ? 'shadow-all-around rounded-2xl bg-darkBg3' : ''} p-5`}>
+            <ReactMarkdown
+              key={index + 'message'}
+              // remarkPlugins={[remarkGfm]}
+              className={`message ${message.is_from_human ? 'justify-end text-end' : 'justify-start text-start'} leading-tight tracking-tight`}
+            >
+              {message.content}
+            </ReactMarkdown>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// // Component to render the last message
+// const LastMessage = ({ message }: { message: Message }) => {
+//   if (message) {
+//     return (
+//       <div className="flex flex-col">
+//         <div className={`flex basis-full p-5 ${message.is_from_human ? 'justify-end' : ''} `}>
+//           <div className={`w-[100%] p-5 ${message.is_from_human ? '' : ''} leading-tight tracking-tight`}>
+//             <ReactMarkdown
+//               className="last-message"
+//               // remarkPlugins={[remarkGfm]}
+//             >
+//               {message.content}
+//             </ReactMarkdown>
+//           </div>
+//         </div>
+//       </div>
+//     );
+//   }
+//   return <div></div>;
+// };
+
+export const Chat = () => {
+  const {
+    selectedConversationId,
+    selectedConversationUserInput,
+    setSelectedConversationId,
+    addMessageToSelectedConversation,
+    setSelectedConversationUserInput,
+    markLastMessageAsComplete,
+  } = useConversationStore(
+    useShallow(state => ({
+      addMessageToSelectedConversation: state.addMessageToSelectedConversation,
+      selectedConversationId: state.selectedConversationId,
+      setSelectedConversationId: state.setSelectedConversationId,
+      selectedConversationUserInput: state.selectedConversationUserInput,
+      setSelectedConversationUserInput: state.setSelectedConversationUserInput,
+      markLastMessageAsComplete: state.markLastMessageAsComplete,
+    }))
+  );
+
+  const { addToBuffer, previousMessages } = useBufferedStreaming();
+
+  const { access_token: accessToken, user_id: userId } = useAuthStore(
+    useShallow(state => ({
+      access_token: state.access_token,
+      user_id: state.user_id,
+    }))
+  );
+
   const generateSourceRef = useRef<EventSource | null>(null);
-
-  useEffect(() => {
-    const updateCurrentConversation = async () => {
-      const conversationId = localStorage.getItem('current_conversation_id');
-      setConversationId(conversationId);
-      const messages = await apiClient.get(`/conversations/conversation-messages?conversation_id=${conversationId}`);
-      console.log('messages: ' + JSON.stringify(messages.data));
-      setMessages(messages.data);
-    };
-    // Add an event listener to listen for storage changes in the same tab or across tabs
-    window.addEventListener('conversation_changed', updateCurrentConversation);
-
-    // Clean up the event listener when the component unmounts
-    return () => {
-      window.removeEventListener('conversation_changed', updateCurrentConversation);
-    };
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -40,23 +93,6 @@ export default () => {
       }
     };
   }, []);
-
-  useEffect(() => {
-    if (!conversationId) {
-      localStorage.removeItem('current_conversation_id');
-    }
-    return () => {
-      closeEventSource();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (currentModelOutput?.content.includes('[DONE-STREAMING-APRV-AI]')) {
-      const newContent = currentModelOutput.content.replace('[DONE-STREAMING-APRV-AI]', '');
-      setMessages([...messages, { content: newContent, conversation_id: currentModelOutput.conversation_id, is_from_human: false }]);
-      setCurrentModelOutput(null);
-    }
-  }, [currentModelOutput]);
 
   const closeEventSource = (eventSource?: EventSource) => {
     if (!eventSource && generateSourceRef.current) {
@@ -68,7 +104,7 @@ export default () => {
   const getModelResponseAndStreamTokens = async (firstPrompt: string): Promise<void> => {
     const response = await apiClient.post(
       '/chat/create_prompt',
-      { prompt: firstPrompt, conversation_id: conversationId ?? null },
+      { prompt: firstPrompt, conversation_id: selectedConversationId ?? null },
       {
         headers: {
           'Content-Type': 'application/json',
@@ -84,17 +120,22 @@ export default () => {
       conversation_id: response.data.conversation_id,
       content: response.data.prompt,
       is_from_human: true,
+      isStreaming: false,
     };
-    setConversationId(message.conversation_id);
+
     if (message.conversation_id) {
-      localStorage.setItem('current_conversation_id', message.conversation_id);
+      setSelectedConversationId(message.conversation_id);
     }
 
-    // Use the sessionId to stream responses
-    setIsStreaming(true);
-    setCurrentModelOutput({ content: '', is_from_human: false, conversation_id: message.conversation_id ?? null });
+    addMessageToSelectedConversation({
+      content: '',
+      is_from_human: false,
+      conversation_id: message.conversation_id ?? undefined,
+      isStreaming: true,
+    });
+
     const generationSource = new EventSource(
-      `${apiClient.defaults.baseURL}/chat/generate/${message.id}?access_token=${localStorage.getItem('access_token')}&user_id=${localStorage.getItem('user_id')}`
+      `${apiClient.defaults.baseURL}/chat/generate/${message.id}?access_token=${accessToken}&user_id=${userId}`
     );
 
     generateSourceRef.current = generationSource;
@@ -111,18 +152,13 @@ export default () => {
     const data: StreamedContent = JSON.parse(event.data);
     const { content } = data;
 
-    if (data) {
-      setCurrentModelOutput(previousOutput => ({
-        content: previousOutput?.content + content,
-        is_from_human: false,
-        conversation_id: conversationId,
-      }));
-    }
-
     if (content.includes('[DONE-STREAMING-APRV-AI]')) {
-      setIsStreaming(false);
+      markLastMessageAsComplete();
       closeEventSource();
       return;
+    }
+    if (data) {
+      addToBuffer(content);
     }
   };
 
@@ -136,22 +172,28 @@ export default () => {
   };
 
   const handleSend = () => {
-    if (!currentUserInput || currentUserInput.trim() === '') return;
-    setMessages([...messages, { content: currentUserInput, is_from_human: true, conversation_id: conversationId }]);
-    getModelResponseAndStreamTokens(currentUserInput);
-    setCurrentUserInput('');
+    if (!selectedConversationUserInput || selectedConversationUserInput.trim() === '') return;
+    addMessageToSelectedConversation({
+      content: selectedConversationUserInput,
+      is_from_human: true,
+      conversation_id: selectedConversationId,
+      isStreaming: false,
+    });
+    getModelResponseAndStreamTokens(selectedConversationUserInput);
+    setSelectedConversationUserInput('');
   };
 
   return (
-    <div className="flex flex-1 flex-grow flex-col">
-      <MessageList
-        messages={messages}
-        isStreaming={isStreaming}
-        currentModelOutput={currentModelOutput}
-      />
+    <div className="flex h-full flex-1 flex-col">
+      <div className="flex flex-grow overflow-y-hidden">
+        <div className="flex flex-1 flex-col overflow-y-auto">
+          <PreviousMessages messages={previousMessages} />
+          {/* <LastMessage message={lastMessage} /> */}
+        </div>
+      </div>
       <InputSection
-        input={currentUserInput}
-        setInput={setCurrentUserInput}
+        input={selectedConversationUserInput}
+        setInput={setSelectedConversationUserInput}
         handleSend={handleSend}
       />
     </div>

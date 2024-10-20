@@ -1,35 +1,37 @@
-// src/components/CodeBlock.tsx
-import { LLMOutputComponent } from '@llm-ui/react';
-import parseHtml from 'html-react-parser';
-import { useCodeBlockToHtml, CodeToHtmlOptions } from '@llm-ui/code';
-import { loadHighlighter, allLangs, allLangsAlias } from '@llm-ui/code';
-import { getSingletonHighlighter } from 'shiki';
-import { bundledLanguagesInfo } from 'shiki/langs';
+import type { CodeToHtmlOptions } from '@llm-ui/code';
+import { loadHighlighter, useCodeBlockToHtml, allLangs, allLangsAlias } from '@llm-ui/code';
+// WARNING: Importing bundledThemes increases your bundle size
+// see: https://llm-ui.com/docs/blocks/code#bundle-size
 import { bundledThemes } from 'shiki/themes';
-// import getWasm from "shiki/wasm";
+import { type LLMOutputComponent } from '@llm-ui/react';
+import parseHtml from 'html-react-parser';
+import { getHighlighterCore } from 'shiki/core';
+import { bundledLanguagesInfo } from 'shiki/langs';
+
+import getWasm from 'shiki/wasm';
 
 const highlighter = loadHighlighter(
-  getSingletonHighlighter({
+  getHighlighterCore({
     langs: allLangs(bundledLanguagesInfo),
     langAlias: allLangsAlias(bundledLanguagesInfo),
     themes: Object.values(bundledThemes),
-    // loadWasm: getWasm,
+    loadWasm: getWasm,
   })
 );
 
 const codeToHtmlOptions: CodeToHtmlOptions = {
-  theme: 'night-owl', // A theme suitable for dark backgrounds
+  theme: 'github-dark',
 };
 
+// Customize this component with your own styling
 export const CodeBlock: LLMOutputComponent = ({ blockMatch }) => {
   const { html, code } = useCodeBlockToHtml({
     markdownCodeBlock: blockMatch.output,
     highlighter,
     codeToHtmlOptions,
   });
-
   if (!html) {
-    // Fallback to <pre> if Shiki is not loaded yet
+    // fallback to <pre> if Shiki is not loaded yet
     return (
       <pre className="shiki">
         <code>{code}</code>

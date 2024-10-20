@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import { useAuthStore } from '../stores/authStore';
 
 // export const getTokenExpiration = (token: string) => {
 //   const decoded = jwtDecode(token);
@@ -19,7 +20,7 @@ export const getUserId = (token: string) => {
 
 // Create an Axios instance
 export const apiClient = axios.create({
-  baseURL: 'http://localhost:8100',
+  baseURL: 'http://localhost:9000',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -28,26 +29,17 @@ export const apiClient = axios.create({
 // Intercept requests to check if token is expired
 apiClient.interceptors.request.use(
   async config => {
-    const accessToken = localStorage.getItem('access_token');
-    const refreshToken = localStorage.getItem('refresh_token');
-    const accessTokenExpiration = localStorage.getItem('exp');
+    // Exclude the /auth/google endpoint
+    if (config.url && config.url.includes('/auth/google')) {
+      return config; // Skip token handling for this endpoint
+    }
+
+    const accessToken = useAuthStore.getState().access_token;
+    const accessTokenExpiration = useAuthStore.getState().exp;
     const currentTime = Date.now() / 1000;
 
     if (accessToken && accessTokenExpiration) {
-      const accessTokenExpirationFloat = parseFloat(accessTokenExpiration);
-
-      if (accessTokenExpirationFloat < currentTime && refreshToken) {
-        // Token expired but we have a refresh token, attempt to refresh
-        try {
-          const response = await apiClient.post('/auth/refresh-token', { token: refreshToken });
-          localStorage.setItem('access_token', response.data.accessToken);
-          localStorage.setItem('exp', response.data.expiration);
-          config.headers['Authorization'] = `Bearer ${response.data.accessToken}`;
-        } catch (refreshError) {
-          console.error('Unable to refresh token, please log in again.');
-          return Promise.reject('Token expired and refresh failed');
-        }
-      } else {
+      if (accessTokenExpiration > currentTime) {
         config.headers['Authorization'] = `Bearer ${accessToken}`;
       }
     }
@@ -63,11 +55,8 @@ apiClient.interceptors.response.use(
   response => {
     // console.log(response);
     if (response.status === 401) {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('exp');
-      localStorage.removeItem('user_id');
+      useAuthStore.setState({ access_token: null, exp: null, user_id: null, isLoggedIn: false });
     }
-
     return response;
   },
   (error: AxiosError) => {
@@ -77,10 +66,7 @@ apiClient.interceptors.response.use(
     if (error.status === 401 || (error.response && error.response.status === 401)) {
       console.error('Unauthorized, possibly due to expired token');
       // Optional: You could clear localStorage or take other actions
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('exp');
-      localStorage.removeItem('user_id');
-      window.dispatchEvent(new StorageEvent('storage'));
+      useAuthStore.setState({ access_token: null, exp: null, user_id: null, isLoggedIn: false });
     }
 
     return Promise.reject(error);

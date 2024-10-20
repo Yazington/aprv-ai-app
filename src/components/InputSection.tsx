@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 
 interface Props {
-  input: string | null;
-  setInput: React.Dispatch<React.SetStateAction<string | null>>;
+  input: string | undefined;
+  setInput: (input: string | undefined) => void;
   handleSend: () => void;
 }
 
@@ -28,11 +28,11 @@ const InputSection = ({ input, setInput, handleSend }: Props) => {
 
   return (
     <div className="flex w-full basis-1/5">
-      <div className="flex basis-full">
-        <div className="flex basis-full">
+      <div className="flex w-[100%] basis-full items-center justify-center p-5">
+        <div className="flex basis-10/12">
           <textarea
             ref={textareaRef}
-            className="max-h-[300px] flex-1 resize-none rounded border border-darkBg1 bg-darkBg1 px-4 py-2 text-textPrimary placeholder-textTert shadow-md shadow-black focus:outline-none"
+            className="max-h-[100px] w-[100%] flex-1 resize-none rounded-xl border border-darkBg1 bg-darkBg1 px-4 py-2 text-textPrimary placeholder-textTert focus:outline-none"
             placeholder="Type your message..."
             value={input ? input : ''}
             onChange={e => handleInputChange(e)}
@@ -43,13 +43,13 @@ const InputSection = ({ input, setInput, handleSend }: Props) => {
               }
             }}
           />
-          <button
-            onClick={handleSend}
-            className="ml-2 max-h-[50px] rounded-xl bg-buttonBlack px-4 py-2 font-bold text-textSecondary transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-slate-900"
-          >
-            Send
-          </button>
         </div>
+        <button
+          onClick={handleSend}
+          className="ml-2 items-center justify-center rounded-xl bg-buttonBlack p-5 px-4 font-bold text-textSecondary transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-slate-900"
+        >
+          Send
+        </button>
       </div>
     </div>
   );

@@ -1,40 +1,45 @@
 import { useEffect, useState } from 'react';
 import { FileUploader } from 'react-drag-drop-files';
 import { apiClient } from '../services/axiosConfig';
-import { Conversation } from '../types/Conversation';
+import { useAuthStore } from '../stores/authStore';
+import { useConversationStore } from '../stores/conversationsStore';
+import { useShallow } from 'zustand/react/shallow';
+import { Message } from '../types/Message';
 
 const fileTypes = ['PNG', 'JPG', 'JPEG', 'PDF'];
 
-interface Props {
-  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-export default ({ setIsLoggedIn }: Props) => {
+export default () => {
+  const { userId, logout } = useAuthStore(useShallow(state => ({ userId: state.user_id, logout: state.logout })));
+  const { allUserConversations, currentlySelectedConversationId, setCurrentConversationId, setAllUserConversations, setCurrentConversationMessages } =
+    useConversationStore(
+      useShallow(state => ({
+        currentlySelectedConversationId: state.selectedConversationId,
+        allUserConversations: state.allUserConversations,
+        setCurrentConversationId: state.setSelectedConversationId,
+        setCurrentConversationMessages: state.setSelectedConversationMessages,
+        setAllUserConversations: state.setAllUserConversations,
+      }))
+    );
   const [designFiles, setDesignFiles] = useState<File[]>([]);
   const [otherFiles, setOtherFiles] = useState<File[]>([]);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const userId = localStorage.getItem('user_id');
-  // console.log(conversations);
+  // TODO: check if we need to save those files on disk instead
+
   useEffect(() => {
     if (userId) {
-      apiClient.get(`/conversations?user_id=${userId}`).then(response => setConversations(response.data));
+      apiClient.get(`/conversations?user_id=${userId}`).then(response => setAllUserConversations(response.data));
     }
   }, [userId]);
 
-  const loadConversation = (selected_conversation_id: string | null) => {
-    if (!selected_conversation_id) {
+  //TODO: put this logic in the store instead
+  const loadConversation = async (selectedConversationId: string | null) => {
+    if (!selectedConversationId) {
       return;
     }
-    localStorage.setItem('current_conversation_id', selected_conversation_id);
-    window.dispatchEvent(new StorageEvent('conversation_changed'));
+    setCurrentConversationId(selectedConversationId);
+    const messages = await apiClient.get(`/conversations/conversation-messages?conversation_id=${selectedConversationId}`);
+    setCurrentConversationMessages(messages.data.map((message: Message) => ({ ...message, isStreaming: false })));
   };
 
-  const logout = () => {
-    setIsLoggedIn(false);
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('exp');
-    localStorage.removeItem('user_id');
-  };
   const handleFileUpload = async (fileList: FileList, isDesign: boolean) => {
     if (!fileList || fileList.length === 0) return;
 
@@ -45,9 +50,9 @@ export default ({ setIsLoggedIn }: Props) => {
         const formData = new FormData();
         formData.append('file', file);
 
-        let uploadUrl = `/upload/image?conversation_id=${localStorage.getItem('current_conversation_id')}`;
+        let uploadUrl = `/upload/image?conversation_id=${currentlySelectedConversationId}`;
         if (file.type === 'application/pdf') {
-          uploadUrl = `/upload/pdf?conversation_id=${localStorage.getItem('current_conversation_id')}`;
+          uploadUrl = `/upload/pdf?conversation_id=${currentlySelectedConversationId}`;
         }
 
         const response = await apiClient.post(uploadUrl, formData, {
@@ -62,12 +67,11 @@ export default ({ setIsLoggedIn }: Props) => {
         }
 
         if (response.data) {
-          localStorage.setItem('current_conversation_id', response.data.conversation_id);
+          setCurrentConversationId(response.data.conversation_id);
         }
 
         console.log(`File ${i + 1} uploaded successfully!`);
       }
-      alert('All files uploaded successfully!');
     } catch (error) {
       console.error(error);
       alert('Failed to upload one or more files.');
@@ -85,11 +89,11 @@ export default ({ setIsLoggedIn }: Props) => {
         </button>
       </div>
       <div className="flex max-h-[200px] overflow-y-auto bg-darkBg2">
-        {conversations.length > 0 && (
+        {allUserConversations.length > 0 && (
           <ul className="w-full list-inside list-disc pl-0">
-            {conversations.map((conversation, index) => (
+            {allUserConversations.map(conversation => (
               <li
-                key={`conversation ${index}`}
+                key={conversation.id}
                 className="mb-2 flex list-none flex-col"
               >
                 <button
@@ -109,9 +113,9 @@ export default ({ setIsLoggedIn }: Props) => {
         <div className="max-h-[200px] overflow-y-auto">
           {designFiles.length > 0 && (
             <ul className="w-full list-inside list-disc pl-0">
-              {designFiles.map((file, index) => (
+              {designFiles.map(file => (
                 <li
-                  key={index}
+                  key={file.lastModified}
                   className="flex list-none flex-col border-[0.5px] border-r-amber-200"
                 >
                   <span>{file.name}</span>
@@ -136,9 +140,9 @@ export default ({ setIsLoggedIn }: Props) => {
         <div className="max-h-[200px] overflow-y-auto">
           {otherFiles.length > 0 && (
             <ul className="w-full list-inside list-disc pl-0">
-              {otherFiles.map((file, index) => (
+              {otherFiles.map(file => (
                 <li
-                  key={index}
+                  key={file.lastModified}
                   className="flex list-none flex-col border-[0.5px] border-r-amber-200 hover:bg-sky-700"
                 >
                   <span>{file.name}</span>
