@@ -20,6 +20,7 @@ module.exports = {
         darkBg1: '#000000',  // Very dark background (almost black)
         darkBg2: '#080808',  // Slightly lighter, but still very dark
         darkBg3: '#131313',  // Another close-to-black background color
+        darkBg4: '#232323',  // Another close-to-black background color
 
         // Updated text colors spread out in brightness
         textPrimary: '#FFFFFF',  // Pure White for main text

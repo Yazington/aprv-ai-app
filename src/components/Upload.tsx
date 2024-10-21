@@ -20,6 +20,7 @@ export default () => {
         setAllUserConversations: state.setAllUserConversations,
       }))
     );
+
   const [designFiles, setDesignFiles] = useState<File[]>([]);
   const [otherFiles, setOtherFiles] = useState<File[]>([]);
   // TODO: check if we need to save those files on disk instead
@@ -65,7 +66,6 @@ export default () => {
         } else {
           setOtherFiles([...otherFiles, file]);
         }
-
         if (response.data) {
           setCurrentConversationId(response.data.conversation_id);
         }
@@ -79,87 +79,89 @@ export default () => {
   };
   // Giving percentage size for this will add sliding window -> we can fix it by making sure the sizes of element within the container arent overflowing
   return (
-    <div className="flex h-screen grid-cols-1 flex-col content-center justify-center rounded-xl shadow-lg shadow-black">
-      <div className="flex flex-[0.5] items-center justify-center">
-        <button
-          className="rounded-full bg-buttonBlack px-4 py-2 font-bold text-textSecondary transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-slate-900"
-          onClick={logout}
-        >
-          Log Out
-        </button>
-      </div>
-      <div className="flex max-h-[200px] overflow-y-auto bg-darkBg2">
-        {allUserConversations.length > 0 && (
-          <ul className="w-full list-inside list-disc pl-0">
-            {allUserConversations.map(conversation => (
-              <li
-                key={conversation.id}
-                className="mb-2 flex list-none flex-col"
-              >
-                <button
-                  className="transform rounded-lg bg-buttonBlack px-3 py-1 text-sm font-medium text-textSecondary transition hover:bg-slate-800"
-                  onClick={() => loadConversation(conversation.id)}
+    <div className="flex min-w-0 basis-[10%]">
+      <div className="flex h-screen w-full min-w-0 flex-col content-center justify-center shadow-all-around">
+        <div className="flex min-w-0 basis-1/12 items-center justify-center">
+          <button
+            className="bg-darkBg4 rounded-full p-4 text-textSecondary shadow-all-around transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-slate-900"
+            onClick={logout}
+          >
+            Log Out
+          </button>
+        </div>
+        <div className="flex w-full min-w-0 basis-7/12 overflow-y-auto overflow-x-hidden bg-darkBg2">
+          {allUserConversations.length > 0 && (
+            <ul className="w-full list-inside list-disc pl-0">
+              {allUserConversations.map(conversation => (
+                <li
+                  key={conversation.id}
+                  className="flex list-none flex-col"
                 >
-                  conversation id: {conversation.id}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+                  <button
+                    className="w-full overflow-hidden truncate whitespace-nowrap rounded-lg bg-buttonBlack p-2 text-sm font-medium text-textSecondary transition hover:bg-slate-800"
+                    onClick={() => loadConversation(conversation.id)}
+                  >
+                    {conversation.thumbnail_text}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
-      <div className="flex flex-1 flex-col p-4">
-        <div className="text-pretty p-4 text-center text-4xl">Design Upload</div>
-        <div className="max-h-[200px] overflow-y-auto">
-          {designFiles.length > 0 && (
-            <ul className="w-full list-inside list-disc pl-0">
-              {designFiles.map(file => (
-                <li
-                  key={file.lastModified}
-                  className="flex list-none flex-col border-[0.5px] border-r-amber-200"
-                >
-                  <span>{file.name}</span>
-                  <span className="text-gray-500">{file.type}</span>
-                  <span className="text-gray-500">{file.size / 1000000} MB</span>
-                </li>
-              ))}
-            </ul>
-          )}
+        <div className="flex min-w-0 basis-2/12 flex-col">
+          <div className="text-pretty text-center">Design Upload</div>
+          <div className="overflow-y-auto">
+            {designFiles.length > 0 && (
+              <ul className="w-full list-inside list-disc pl-0">
+                {designFiles.map(file => (
+                  <li
+                    key={file.lastModified}
+                    className="flex list-none flex-col border-[0.5px] border-r-amber-200"
+                  >
+                    <span>{file.name}</span>
+                    <span className="text-gray-500">{file.type}</span>
+                    <span className="text-gray-500">{file.size / 1000000} MB</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col content-center justify-center truncate">
+            <FileUploader
+              handleChange={(fileList: FileList) => handleFileUpload(fileList, true)}
+              multiple={true}
+              name="design"
+              types={fileTypes}
+            />
+          </div>
         </div>
-        <div className="flex flex-1 flex-col content-center justify-center">
-          <FileUploader
-            handleChange={(fileList: FileList) => handleFileUpload(fileList, true)}
-            multiple={true}
-            name="file"
-            types={fileTypes}
-          />
-        </div>
-      </div>
-      <div className="flex flex-1 flex-col p-4">
-        <div className="text-pretty p-4 text-center text-4xl">Contract Upload</div>
-        <div className="max-h-[200px] overflow-y-auto">
-          {otherFiles.length > 0 && (
-            <ul className="w-full list-inside list-disc pl-0">
-              {otherFiles.map(file => (
-                <li
-                  key={file.lastModified}
-                  className="flex list-none flex-col border-[0.5px] border-r-amber-200 hover:bg-sky-700"
-                >
-                  <span>{file.name}</span>
-                  <span>{file.type}</span>
-                  <span>{file.size / 1000000} MB</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <div className="flex flex-1 flex-col content-center justify-center">
-          <FileUploader
-            handleChange={(fileList: FileList) => handleFileUpload(fileList, false)}
-            multiple={true}
-            name="file"
-            types={fileTypes}
-          />
+        <div className="flex min-w-0 basis-2/12 flex-col">
+          <div className="text-pretty text-center">Guideline Upload</div>
+          <div className="overflow-y-auto">
+            {otherFiles.length > 0 && (
+              <ul className="w-full list-inside list-disc pl-0">
+                {otherFiles.map(file => (
+                  <li
+                    key={file.lastModified}
+                    className="flex list-none flex-col border-[0.5px] border-r-amber-200 hover:bg-sky-700"
+                  >
+                    <span>{file.name}</span>
+                    <span>{file.type}</span>
+                    <span>{file.size / 1000000} MB</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col content-center justify-center truncate">
+            <FileUploader
+              handleChange={(fileList: FileList) => handleFileUpload(fileList, false)}
+              multiple={true}
+              name="guideline"
+              types={fileTypes}
+            />
+          </div>
         </div>
       </div>
     </div>

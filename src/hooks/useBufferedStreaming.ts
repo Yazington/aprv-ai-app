@@ -24,7 +24,6 @@ export const useBufferedStreaming = () => {
     return selectedConversationMessages.filter(message => message.isStreaming)[0];
   }, [selectedConversationMessages]);
 
-  console.log(previousMessages.length);
   useEffect(() => {
     if (lastMessage?.content.includes('[DONE-STREAMING-APRV-AI]')) {
       flushBuffer();

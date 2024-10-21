@@ -67,7 +67,7 @@ function App() {
         </div>
       )}
       {isLoggedIn && (
-        <div className="flex h-screen w-screen content-center justify-center tracking-wide text-textPrimary subpixel-antialiased dark:bg-darkBg3">
+        <div className="flex h-screen w-screen basis-full flex-row content-center justify-center text-textPrimary subpixel-antialiased dark:bg-darkBg3">
           <ContractChecks />
           <Chat />
           <Upload />

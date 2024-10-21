@@ -64,7 +64,7 @@ export default () => {
   };
 
   return (
-    <div className="h-[100%] basis-[20%] shadow-lg shadow-black">
+    <div className="flex h-[100%] min-w-0 basis-[10%] shadow-lg shadow-black">
       <div className="flex h-[100%] flex-1 flex-col items-center justify-center">
         <div className="flex flex-[2%] items-center justify-center p-4 text-center text-lg font-semibold">Contract Checks</div>
         <div className="flex flex-[88%]"> test</div>
@@ -74,7 +74,7 @@ export default () => {
               className="flex max-h-10 items-center justify-center rounded-full bg-buttonBlack px-4 py-2 font-bold text-textSecondary transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-slate-900"
               onClick={processDesign}
             >
-              Process Design Against Contract
+              PDAC
             </button>
           )}
           {processingHasStarted && isProcessing && (

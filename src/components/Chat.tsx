@@ -17,13 +17,15 @@ interface StreamedContent {
 // Component to render all previous messages
 const PreviousMessages = ({ messages }: { messages: Message[] }) => {
   return (
-    <div className="flex flex-col">
+    <div className="flex max-h-full min-w-0 flex-col overflow-y-auto">
       {messages.map((message, index) => (
-        <div className={`flex basis-full p-5 ${message.is_from_human ? 'justify-end' : ''} `}>
-          <div className={`${message.is_from_human ? 'shadow-all-around rounded-2xl bg-darkBg3' : ''} p-5`}>
+        <div
+          key={'previous-messages-' + index}
+          className={`flex basis-full p-5 ${message.is_from_human ? 'justify-end' : ''}`}
+        >
+          <div className={`p-5 ${message.is_from_human ? 'rounded-2xl bg-darkBg3 shadow-all-around' : ''} min-w-0 break-words`}>
             <ReactMarkdown
               key={index + 'message'}
-              // remarkPlugins={[remarkGfm]}
               className={`message ${message.is_from_human ? 'justify-end text-end' : 'justify-start text-start'} leading-tight tracking-tight`}
             >
               {message.content}
@@ -184,18 +186,20 @@ export const Chat = () => {
   };
 
   return (
-    <div className="flex h-full flex-1 flex-col">
-      <div className="flex flex-grow overflow-y-hidden">
-        <div className="flex flex-1 flex-col overflow-y-auto">
-          <PreviousMessages messages={previousMessages} />
-          {/* <LastMessage message={lastMessage} /> */}
+    <div className="flex min-w-0 basis-[80%]">
+      <div className="flex w-full min-w-0 flex-col">
+        <div className="flex w-full min-w-0 flex-grow overflow-y-hidden">
+          <div className="flex w-full min-w-0 flex-col overflow-y-auto overflow-x-hidden">
+            <PreviousMessages messages={previousMessages} />
+            {/* <LastMessage message={lastMessage} /> */}
+          </div>
         </div>
+        <InputSection
+          input={selectedConversationUserInput}
+          setInput={setSelectedConversationUserInput}
+          handleSend={handleSend}
+        />
       </div>
-      <InputSection
-        input={selectedConversationUserInput}
-        setInput={setSelectedConversationUserInput}
-        handleSend={handleSend}
-      />
     </div>
   );
 };
