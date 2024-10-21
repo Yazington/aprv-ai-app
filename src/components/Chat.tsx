@@ -8,8 +8,6 @@ import { useAuthStore } from '../stores/authStore';
 import { useBufferedStreaming } from '../hooks/useBufferedStreaming';
 import ReactMarkdown from 'react-markdown';
 
-import remarkGfm from 'remark-gfm';
-
 interface StreamedContent {
   content: string;
 }
@@ -66,6 +64,7 @@ export const Chat = () => {
     addMessageToSelectedConversation,
     setSelectedConversationUserInput,
     markLastMessageAsComplete,
+    setSelectedConversation,
   } = useConversationStore(
     useShallow(state => ({
       addMessageToSelectedConversation: state.addMessageToSelectedConversation,
@@ -74,6 +73,7 @@ export const Chat = () => {
       selectedConversationUserInput: state.selectedConversationUserInput,
       setSelectedConversationUserInput: state.setSelectedConversationUserInput,
       markLastMessageAsComplete: state.markLastMessageAsComplete,
+      setSelectedConversation: state.setSelectedConversation,
     }))
   );
 
@@ -95,6 +95,22 @@ export const Chat = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    const getConversation = async () => {
+      apiClient
+        .get(`/conversations/conversation?conversation_id=${selectedConversationId}`)
+        .then(response => {
+          if (response.status == 200) {
+            setSelectedConversation(response.data);
+          }
+        })
+        .catch(error => console.log(error));
+    };
+    if (selectedConversationId) {
+      getConversation();
+    }
+  }, [selectedConversationId]);
 
   const closeEventSource = (eventSource?: EventSource) => {
     if (!eventSource && generateSourceRef.current) {

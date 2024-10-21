@@ -8,11 +8,13 @@ interface ConversationStore {
   allUserConversations: Conversation[];
   selectedConversationMessages: Message[]; // last message is the one potentially streaming
   selectedConversationUserInput?: string;
+  selectedConversation?: Conversation;
 
   setSelectedConversationId: (conversationId?: string) => Promise<void>;
   setAllUserConversations: (allUserConversations: Conversation[]) => Promise<void>;
   setSelectedConversationMessages: (messages: Message[]) => Promise<void>;
   setSelectedConversationUserInput: (input?: string) => Promise<void>;
+  setSelectedConversation: (conversation: Conversation) => Promise<void>;
 
   addMessageToSelectedConversation: (newMessage: Message) => Promise<void>;
   markLastMessageAsComplete: () => Promise<void>;
@@ -24,6 +26,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
   allUserConversations: [],
   selectedConversationMessages: [],
   selectedConversationUserInput: undefined,
+  selectedConversation: undefined,
 
   setSelectedConversationId: async (currentConversationId?: string) => {
     set({ selectedConversationId: currentConversationId });
@@ -74,5 +77,8 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
 
       return { ...state, selectedConversationMessages: updatedMessages };
     });
+  },
+  setSelectedConversation: async (conversation: Conversation) => {
+    set({ selectedConversation: conversation });
   },
 }));

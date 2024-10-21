@@ -1,27 +1,56 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { apiClient } from '../services/axiosConfig';
 import { useConversationStore } from '../stores/conversationsStore';
-
-interface ContractCheck {
-  thumbnail_url: string;
-  passing_percentage: number;
-}
+import { useGuidelineChecksStore } from '../stores/guidelineChecksStore';
+import { useShallow } from 'zustand/shallow';
+import { PageReview } from '../types/PageReview';
+import Popover from './Popover';
+import ReactMarkdown from 'react-markdown';
 
 export default () => {
-  const [contractChecks, setContractChecks] = useState<ContractCheck[]>([]);
+  const { reviews, setConversationReviews } = useGuidelineChecksStore(
+    useShallow(state => ({
+      reviews: state.reviews,
+      setConversationReviews: state.setConversationReviews,
+    }))
+  );
+  const isGuidelineAlreadyProcessed = useConversationStore(state => state.selectedConversation?.design_process_task_id) ? true : false;
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [processingHasStarted, setProcessingHasStarted] = useState<boolean>(false);
+  const [processingHasStarted, setProcessingHasStarted] = useState<boolean>(isGuidelineAlreadyProcessed);
   const currentlySelectedConversationId = useConversationStore(store => store.selectedConversationId);
 
-  // Function to check the process status
+  useEffect(() => {
+    const getConversationReviews = async () => {
+      if (currentlySelectedConversationId) {
+        apiClient
+          .get<PageReview[]>(`/conversations/conversation-reviews?conversation_id=${currentlySelectedConversationId}`)
+          .then(response => {
+            if (!response.data || response.data.length == 0) {
+              setProcessingHasStarted(false);
+              setIsProcessing(false);
+              setConversationReviews([]);
+              return;
+            }
+            setConversationReviews(response.data);
+          })
+          .catch(e => {
+            // console.error(e);
+            setProcessingHasStarted(false);
+            setIsProcessing(false);
+            setConversationReviews([]);
+            return;
+          });
+      }
+    };
+    getConversationReviews();
+  }, [currentlySelectedConversationId]);
+
   const checkProcessStatus = async (conversationId: string) => {
     try {
       const response = await apiClient.get(`/conversations/process-status?conversation_id=${conversationId}`);
-      if (response.status === 202) {
-        // The task is still in progress, so we will continue polling
+      if (response.status === 202 || response.status === 400) {
         setTimeout(() => checkProcessStatus(conversationId), 2000); // Poll every 2 seconds
       } else if (response.status === 200) {
-        // The task is complete, now fetch the result
         const taskId = response.data.task_id;
         await getProcessResult(taskId);
       }
@@ -35,7 +64,7 @@ export default () => {
     try {
       const response = await apiClient.get(`/conversations/process-result?task_id=${taskId}`);
       if (response.status === 200) {
-        setContractChecks(response.data); // Assuming the response is the file or review in JSON format
+        setConversationReviews(response.data); // Assuming the response is the file or review in JSON format
         setIsProcessing(false); // Stop showing the loading indicator
       }
     } catch (e) {
@@ -64,10 +93,90 @@ export default () => {
   };
 
   return (
-    <div className="flex h-[100%] min-w-0 basis-[10%] shadow-lg shadow-black">
-      <div className="flex h-[100%] flex-1 flex-col items-center justify-center">
+    <div className="flex h-[100%] w-full min-w-0 basis-[10%] shadow-lg shadow-black">
+      <div className="flex h-[100%] w-full basis-full flex-col items-center justify-center">
         <div className="flex flex-[2%] items-center justify-center p-4 text-center text-lg font-semibold">Contract Checks</div>
-        <div className="flex flex-[88%]"> test</div>
+        <div className="w-full basis-[88%] items-center justify-center divide-y overflow-y-auto">
+          {reviews.map(review => {
+            return (
+              <div className="flex min-h-[24px] w-full flex-row items-center justify-evenly p-2 text-xl">
+                {review.page_number}
+                {review.guideline_achieved == null && review.guideline_achieved !== false && (
+                  <Popover
+                    trigger="click"
+                    content={<ReactMarkdown>{review.review_description}</ReactMarkdown>}
+                  >
+                    <div
+                      className="rounded-full bg-slate-500 p-2 hover:bg-darkBg4"
+                      data-popover-target=""
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="size-6"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 0 1 .67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 1 1-.671-1.34l.041-.022ZM12 9a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  </Popover>
+                )}
+                {review.guideline_achieved && (
+                  <Popover
+                    trigger="click"
+                    content={<ReactMarkdown>{review.review_description}</ReactMarkdown>}
+                  >
+                    <div
+                      className="rounded-full bg-green-600 p-2 hover:bg-darkBg4"
+                      data-popover-target=""
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="size-6"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  </Popover>
+                )}
+                {review.guideline_achieved !== null && review.guideline_achieved === false && (
+                  <Popover
+                    trigger="click"
+                    content={<ReactMarkdown>{review.review_description}</ReactMarkdown>}
+                  >
+                    <div
+                      className="rounded-full bg-red-600 p-2 hover:bg-darkBg4"
+                      data-popover-target=""
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="size-6"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  </Popover>
+                )}
+              </div>
+            );
+          })}
+        </div>
         <div className="flex flex-[10%] items-center justify-center">
           {!processingHasStarted && (
             <button
