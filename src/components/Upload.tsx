@@ -59,7 +59,10 @@ export default () => {
         if (!file) continue;
         const formData = new FormData();
         formData.append('file', file);
-
+        // if (!!currentlySelectedConversationId) {
+        //   console.log('Selected conversation id is undefined');
+        //   return;
+        // }
         let uploadUrl = `/upload/image?conversation_id=${currentlySelectedConversationId}`;
         if (file.type === 'application/pdf') {
           uploadUrl = `/upload/pdf?conversation_id=${currentlySelectedConversationId}`;
