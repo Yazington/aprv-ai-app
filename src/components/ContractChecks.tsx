@@ -14,7 +14,7 @@ export default () => {
       setConversationReviews: state.setConversationReviews,
     }))
   );
-  const isGuidelineAlreadyProcessed = useConversationStore(state => state.selectedConversation?.design_process_task_id) ? true : false;
+  const isGuidelineAlreadyProcessed = useConversationStore(state => state.selectedConversation) ? true : false;
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [processingHasStarted, setProcessingHasStarted] = useState<boolean>(isGuidelineAlreadyProcessed);
   const currentlySelectedConversationId = useConversationStore(store => store.selectedConversationId);
@@ -43,6 +43,7 @@ export default () => {
       }
     };
     getConversationReviews();
+    setProcessingHasStarted(isGuidelineAlreadyProcessed);
   }, [currentlySelectedConversationId]);
 
   const checkProcessStatus = async (conversationId: string) => {
