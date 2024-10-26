@@ -20,7 +20,7 @@ export const getUserId = (token: string) => {
 
 // Create an Axios instance
 export const apiClient = axios.create({
-  baseURL: 'http://localhost:9000',
+  baseURL: 'https://api.aprv.ai',
   headers: {
     'Content-Type': 'application/json',
   },
