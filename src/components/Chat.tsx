@@ -7,6 +7,8 @@ import { useConversationStore } from '../stores/conversationsStore';
 import { useAuthStore } from '../stores/authStore';
 import { useBufferedStreaming } from '../hooks/useBufferedStreaming';
 import ReactMarkdown from 'react-markdown';
+import { FaRobot } from 'react-icons/fa';
+import { RiUser6Line } from 'react-icons/ri';
 
 interface StreamedContent {
   content: string;
@@ -14,14 +16,29 @@ interface StreamedContent {
 
 // Component to render all previous messages
 const PreviousMessages = ({ messages }: { messages: Message[] }) => {
+  const messageEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Scroll to bottom whenever messages change
+    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+  // const reversedMessages = messages.reverse()
   return (
     <div className="flex max-h-full min-w-0 flex-col overflow-y-auto">
       {messages.map((message, index) => (
         <div
           key={'previous-messages-' + index}
-          className={`flex basis-full p-5 ${message.is_from_human ? 'justify-end' : ''}`}
+          className={`flex basis-full items-center p-5 ${message.is_from_human ? 'justify-end' : ''}`}
         >
-          <div className={`p-5 ${message.is_from_human ? 'rounded-2xl bg-darkBg3 shadow-all-around' : ''} min-w-0 break-words`}>
+          <div className="basis-[10%]">
+            {!message.is_from_human && (
+              <FaRobot
+                size={'40px'}
+                className="mr-2 text-gray-500"
+              />
+            )}
+          </div>
+          <div className={`p-5 ${message.is_from_human ? 'rounded-2xl bg-darkBg4 shadow-all-around' : ''} min-w-0 basis-[90%] break-words`}>
             <ReactMarkdown
               key={index + 'message'}
               className={`message ${message.is_from_human ? 'justify-end text-end' : 'justify-start text-start'} leading-tight tracking-tight`}
@@ -29,32 +46,21 @@ const PreviousMessages = ({ messages }: { messages: Message[] }) => {
               {message.content}
             </ReactMarkdown>
           </div>
+          <div className="basis-[10%]">
+            {message.is_from_human && (
+              <RiUser6Line
+                size={'40px'}
+                className="ml-2 text-blue-500"
+              />
+            )}
+          </div>
         </div>
       ))}
+      {/* Reference element at the end of the messages */}
+      <div ref={messageEndRef} />
     </div>
   );
 };
-
-// // Component to render the last message
-// const LastMessage = ({ message }: { message: Message }) => {
-//   if (message) {
-//     return (
-//       <div className="flex flex-col">
-//         <div className={`flex basis-full p-5 ${message.is_from_human ? 'justify-end' : ''} `}>
-//           <div className={`w-[100%] p-5 ${message.is_from_human ? '' : ''} leading-tight tracking-tight`}>
-//             <ReactMarkdown
-//               className="last-message"
-//               // remarkPlugins={[remarkGfm]}
-//             >
-//               {message.content}
-//             </ReactMarkdown>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-//   return <div></div>;
-// };
 
 export const Chat = () => {
   const {
@@ -202,7 +208,7 @@ export const Chat = () => {
   };
 
   return (
-    <div className="flex min-w-0 basis-[80%]">
+    <div className="flex min-w-0 basis-[70%]">
       <div className="flex w-full min-w-0 flex-col">
         <div className="flex w-full min-w-0 flex-grow overflow-y-hidden">
           <div className="flex w-full min-w-0 flex-col overflow-y-auto overflow-x-hidden">

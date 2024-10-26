@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { FileUploader } from 'react-drag-drop-files';
 import { apiClient } from '../services/axiosConfig';
 import { useAuthStore } from '../stores/authStore';
 import { useConversationStore } from '../stores/conversationsStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Message } from '../types/Message';
+import CustomFileUploader from './CustomFileUploader';
+import { IoCreateOutline } from 'react-icons/io5';
 
 const fileTypes = ['PNG', 'JPG', 'JPEG', 'PDF'];
 
@@ -12,36 +13,53 @@ export default () => {
   const { userId, logout } = useAuthStore(useShallow(state => ({ userId: state.user_id, logout: state.logout })));
   const {
     allUserConversations,
-    currentlySelectedConversationId,
-    selectedConversation,
+    selectedConversationId,
     setCurrentConversationId,
     setAllUserConversations,
     setCurrentConversationMessages,
+    createNewConversation,
   } = useConversationStore(
     useShallow(state => ({
-      currentlySelectedConversationId: state.selectedConversationId,
+      selectedConversationId: state.selectedConversationId,
       allUserConversations: state.allUserConversations,
       setCurrentConversationId: state.setSelectedConversationId,
       setCurrentConversationMessages: state.setSelectedConversationMessages,
       setAllUserConversations: state.setAllUserConversations,
-      selectedConversation: state.selectedConversation,
+      createNewConversation: state.createNewConversation,
     }))
   );
   const [isLoading, setIsLoading] = useState<boolean | undefined>(undefined);
 
-  const [designFiles, setDesignFiles] = useState<File[]>([]);
-  const [otherFiles, setOtherFiles] = useState<File[]>([]);
+  const [designFiles, setDesignFiles] = useState<File[] | null>([]);
+  const [otherFiles, setOtherFiles] = useState<File[] | null>([]);
   // TODO: check if we need to save those files on disk instead
-  const isDesignAlreadyUploaded = selectedConversation?.design_id ? true : false;
-  const isGuidelineAlreadyUploaded = selectedConversation?.contract_id ? true : false;
-  // const isLoading = designFiles?.length > 0 && isGuidelineAlreadyUploaded == false;
-  console.log('up' + isGuidelineAlreadyUploaded);
-  console.log(designFiles?.length);
+  // const isDesignAlreadyUploaded = selectedConversation?.design_id ? true : false;
+  // const isGuidelineAlreadyUploaded = selectedConversation?.contract_id ? true : false;
+  // // const isLoading = designFiles?.length > 0 && isGuidelineAlreadyUploaded == false;
   useEffect(() => {
     if (userId) {
-      apiClient.get(`/conversations?user_id=${userId}`).then(response => setAllUserConversations(response.data));
+      apiClient
+        .get(`/conversations?user_id=${userId}`)
+        .then(response => setAllUserConversations(response.data))
+        .catch(console.error);
     }
   }, [userId]);
+
+  useEffect(() => {
+    // get all files
+    if (selectedConversationId) {
+      apiClient
+        .get(`/upload?conversation_id=${selectedConversationId}`)
+        .then(response => response.data)
+        .then(data => {
+          setDesignFiles([data.design]);
+          setOtherFiles(data.guidelines);
+        });
+    } else {
+      setDesignFiles(null);
+      setOtherFiles(null);
+    }
+  }, [selectedConversationId]);
 
   //TODO: put this logic in the store instead
   const loadConversation = async (selectedConversationId: string | undefined) => {
@@ -57,51 +75,62 @@ export default () => {
     if (!fileList || fileList.length === 0) return;
     setIsLoading(true);
     try {
-      for (let i = 0; i < fileList.length; i++) {
-        const file = fileList[i];
-        if (!file) continue;
-        const formData = new FormData();
-        formData.append('file', file);
-
-        let uploadUrl = `/upload/image?conversation_id=${currentlySelectedConversationId}`;
-        if (file.type === 'application/pdf') {
-          uploadUrl = `/upload/pdf?conversation_id=${currentlySelectedConversationId}`;
-        }
-
-        const response = await apiClient.post(uploadUrl, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        if (isDesign) {
-          setDesignFiles([...designFiles, file]);
-        } else {
-          setOtherFiles([...otherFiles, file]);
-        }
-        if (response.data) {
-          setCurrentConversationId(response.data.conversation_id);
-        }
-        setIsLoading(false);
-        console.log(`File ${i + 1} uploaded successfully!`);
+      // for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[fileList.length - 1];
+      if (!file) {
+        setIsLoading(undefined);
+        return;
       }
+      const formData = new FormData();
+      formData.append('file', file);
+
+      let uploadUrl = `/upload/image?conversation_id=${selectedConversationId}`;
+      if (file.type === 'application/pdf') {
+        uploadUrl = `/upload/pdf?conversation_id=${selectedConversationId}`;
+      }
+
+      const response = await apiClient.post(uploadUrl, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      if (isDesign) {
+        if (designFiles) setDesignFiles([...designFiles, file]);
+      } else {
+        if (otherFiles) setOtherFiles([...otherFiles, file]);
+      }
+      if (response.data) {
+        setCurrentConversationId(response.data.conversation_id);
+      }
+      setIsLoading(false);
+      // }
     } catch (error) {
       console.error(error);
       setIsLoading(undefined);
       alert('Failed to upload one or more files.');
     }
   };
-  console.log(isLoading);
-  // Giving percentage size for this will add sliding window -> we can fix it by making sure the sizes of element within the container arent overflowing
+
   return (
-    <div className="flex min-w-0 basis-[10%]">
-      <div className="flex h-screen w-full min-w-0 flex-col content-center justify-center shadow-all-around">
-        <div className="flex min-w-0 basis-1/12 items-center justify-center">
+    <div className="flex min-w-0 basis-[20%]">
+      <div className="flex h-screen w-full min-w-0 basis-[100%] flex-col content-center justify-center shadow-all-around">
+        <div className="flex max-h-[100px] w-full basis-1/12 flex-row items-center justify-evenly">
           <button
-            className="rounded-full bg-darkBg4 px-4 py-2 text-textSecondary shadow-all-around transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-slate-900"
-            onClick={logout}
+            className="rounded-full bg-darkBg4 p-2 text-textSecondary shadow-all-around transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:text-gray-200 hover:shadow-lg"
+            onClick={createNewConversation}
+            aria-label="Create New Conversation"
           >
-            Sign Out
+            <IoCreateOutline size={'25px'} />
           </button>
+
+          <div className="flex min-w-[100px] basis-1/12 items-center justify-center">
+            <button
+              className="rounded-full bg-darkBg4 px-4 py-2 text-textSecondary shadow-all-around transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:text-gray-200 hover:shadow-lg"
+              onClick={logout}
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
         <div className="flex w-full min-w-0 basis-7/12 overflow-y-auto overflow-x-hidden bg-darkBg2">
           {allUserConversations.length > 0 && (
@@ -112,7 +141,11 @@ export default () => {
                   className="flex list-none flex-col"
                 >
                   <button
-                    className="w-full overflow-hidden truncate whitespace-nowrap rounded-lg bg-buttonBlack p-2 text-sm font-medium text-textSecondary transition hover:bg-slate-800"
+                    className={`w-full overflow-hidden truncate whitespace-nowrap rounded-lg p-2 text-sm font-medium transition ${
+                      conversation.id === selectedConversationId
+                        ? 'text-highlightText bg-sky-700' // Add your styles for the selected conversation here
+                        : 'bg-buttonBlack text-textSecondary hover:bg-slate-800'
+                    }`}
                     onClick={() => loadConversation(conversation.id)}
                   >
                     {conversation.thumbnail_text}
@@ -125,43 +158,79 @@ export default () => {
 
         <div className="flex min-w-0 basis-2/12 flex-col truncate">
           <div className="min-w-0 truncate text-pretty text-center">Design Upload</div>
-          {isDesignAlreadyUploaded && selectedConversation?.design_id}
-          {!isDesignAlreadyUploaded && (
-            <div>
-              <div className="overflow-y-auto">
-                {designFiles.length > 0 && (
-                  <ul className="w-full list-inside list-disc pl-0">
-                    {designFiles.map(file => (
+
+          <div className="w-full overflow-y-auto">
+            {designFiles && designFiles.length > 0 && (
+              <ul className="w-full list-inside list-disc pl-0">
+                {designFiles
+                  .filter(file => file !== null) // Filter out null values
+                  .map((file, index) => (
+                    <li
+                      key={(file.lastModified || '') + '' + index + 'other'}
+                      className="flex list-none flex-col border-[0.5px] border-r-amber-200 hover:bg-sky-700"
+                    >
+                      <span>{file.name}</span>
+                      <span>{file.type}</span>
+                      <span>{(file.size / 1000000).toFixed(2)} MB</span>
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </div>
+          <div>
+            <div className="flex min-w-0 flex-1 flex-col content-center justify-center truncate">
+              <CustomFileUploader
+                handleChange={(fileList: FileList) => handleFileUpload(fileList, true)}
+                multiple={true}
+                name="design"
+                types={fileTypes}
+                label={'Upload 1 Design Image (PNG, JPG)'}
+                className="flex min-h-[50px] w-full items-center justify-center border-2 border-dashed bg-darkBg2 text-center"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex w-full min-w-0 basis-2/12 flex-col items-center justify-center truncate">
+          <div className="w-full items-center justify-center text-pretty text-center">Guideline Upload</div>
+          <div className="w-full overflow-y-auto">
+            {otherFiles !== null && otherFiles.length > 0 && (
+              <ul className="w-full list-inside list-disc pl-0">
+                {otherFiles &&
+                  otherFiles.length > 0 &&
+                  otherFiles
+                    .filter(file => file !== null) // Filter out null values
+                    .map((file, index) => (
                       <li
-                        key={file.lastModified}
-                        className="flex list-none flex-col border-[0.5px] border-r-amber-200"
+                        key={file.lastModified + index + 'other'}
+                        className="flex list-none flex-col border-[0.5px] border-r-amber-200 hover:bg-sky-700"
                       >
                         <span>{file.name}</span>
-                        <span className="text-gray-500">{file.type}</span>
-                        <span className="text-gray-500">{file.size / 1000000} MB</span>
+                        <span>{file.type}</span>
+                        <span>{file.size / 1000000} MB</span>
                       </li>
                     ))}
-                  </ul>
-                )}
-              </div>
-              <div className="flex min-w-0 flex-1 flex-col content-center justify-center truncate">
-                <FileUploader
-                  handleChange={(fileList: FileList) => handleFileUpload(fileList, true)}
+              </ul>
+            )}
+          </div>
+          {!isLoading && (
+            <div className="w-full">
+              <div className="flex w-full min-w-0 flex-1 flex-col content-center justify-center truncate">
+                <CustomFileUploader
+                  handleChange={(fileList: FileList) => handleFileUpload(fileList, false)}
                   multiple={true}
-                  name="design"
-                  types={fileTypes}
+                  name="guideline"
+                  types={['PDF']}
+                  label={'Upload Multiple Guidelines (PDF)'}
+                  className="flex min-h-[50px] w-full items-center justify-center border-2 border-dashed bg-darkBg2 text-center"
                 />
               </div>
             </div>
           )}
-        </div>
-        <div className="flex w-full min-w-0 basis-2/12 flex-col items-center justify-center truncate">
-          <div className="w-full items-center justify-center text-pretty text-center">Guideline Upload</div>
-          {isGuidelineAlreadyUploaded && selectedConversation?.contract_id}
           {isLoading && (
             <div
               role="status"
-              className="w-full items-center justify-center"
+              className="flex w-full items-center justify-center"
             >
               <svg
                 aria-hidden="true"
@@ -180,34 +249,6 @@ export default () => {
                 />
               </svg>
               <span className="sr-only">Loading...</span>
-            </div>
-          )}
-          {!isLoading && !isGuidelineAlreadyUploaded && (
-            <div>
-              <div className="overflow-y-auto">
-                {otherFiles.length > 0 && (
-                  <ul className="w-full list-inside list-disc pl-0">
-                    {otherFiles.map(file => (
-                      <li
-                        key={file.lastModified}
-                        className="flex list-none flex-col border-[0.5px] border-r-amber-200 hover:bg-sky-700"
-                      >
-                        <span>{file.name}</span>
-                        <span>{file.type}</span>
-                        <span>{file.size / 1000000} MB</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              <div className="flex min-w-0 flex-1 flex-col content-center justify-center truncate">
-                <FileUploader
-                  handleChange={(fileList: FileList) => handleFileUpload(fileList, false)}
-                  multiple={true}
-                  name="guideline"
-                  types={fileTypes}
-                />
-              </div>
             </div>
           )}
         </div>

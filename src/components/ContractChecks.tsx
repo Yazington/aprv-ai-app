@@ -4,9 +4,11 @@ import { useConversationStore } from '../stores/conversationsStore';
 import { useGuidelineChecksStore } from '../stores/guidelineChecksStore';
 import { useShallow } from 'zustand/shallow';
 import { PageReview } from '../types/PageReview';
-import Popover from './Popover';
 import ReactMarkdown from 'react-markdown';
+import Tippy from '@tippyjs/react';
+import 'tippy.js/dist/tippy.css';
 
+// Define functional component
 export default () => {
   const { reviews, setConversationReviews } = useGuidelineChecksStore(
     useShallow(state => ({
@@ -14,11 +16,12 @@ export default () => {
       setConversationReviews: state.setConversationReviews,
     }))
   );
-  const isGuidelineAlreadyProcessed = useConversationStore(state => state.selectedConversation) ? true : false;
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [processingHasStarted, setProcessingHasStarted] = useState<boolean>(isGuidelineAlreadyProcessed);
   const currentlySelectedConversationId = useConversationStore(store => store.selectedConversationId);
+  const isGuidelineAlreadyProcessed = useConversationStore(state => state.selectedConversation) ? true : false;
+  const [processingHasStarted, setProcessingHasStarted] = useState<boolean>(isGuidelineAlreadyProcessed);
 
+  // Fetch reviews
   useEffect(() => {
     const getConversationReviews = async () => {
       if (currentlySelectedConversationId) {
@@ -34,7 +37,7 @@ export default () => {
             setConversationReviews(response.data);
           })
           .catch(e => {
-            // console.error(e);
+            console.error(e);
             setProcessingHasStarted(false);
             setIsProcessing(false);
             setConversationReviews([]);
@@ -57,6 +60,8 @@ export default () => {
       }
     } catch (e) {
       console.error('Error checking process status', e);
+      setIsProcessing(false);
+      setProcessingHasStarted(false);
     }
   };
 
@@ -70,6 +75,7 @@ export default () => {
       }
     } catch (e) {
       console.error('Error fetching process result', e);
+      setIsProcessing(false);
     }
   };
 
@@ -93,90 +99,76 @@ export default () => {
     }
   };
 
+  const IconStyles = {
+    base: 'rounded-full p-2 transition duration-300 ease-in-out',
+    alert: 'bg-slate-500 hover:bg-slate-700 ',
+    success: 'bg-green-600 hover:bg-green-700 ',
+    error: 'bg-red-600 hover:bg-red-700 ',
+    svgStyles: 'h-4 w-4',
+  };
+  // Render component
   return (
     <div className="flex h-[100%] w-full min-w-0 basis-[10%] shadow-lg shadow-black">
       <div className="flex h-[100%] w-full basis-full flex-col items-center justify-center">
-        <div className="flex flex-[2%] items-center justify-center p-4 text-center text-lg font-semibold">Contract Checks</div>
+        <div className="flex items-center justify-center border-b-2 border-gray-300 p-4">
+          <h1 className="text-xl font-semibold tracking-tight text-textPrimary">Contract Checks</h1>
+        </div>
         <div className="w-full basis-[88%] items-center justify-center divide-y overflow-y-auto">
-          {reviews.map(review => {
-            return (
-              <div className="flex min-h-[24px] w-full flex-row items-center justify-evenly p-2 text-xl">
-                {review.page_number}
-                {review.guideline_achieved == null && review.guideline_achieved !== false && (
-                  <Popover
-                    trigger="click"
-                    content={<ReactMarkdown>{review.review_description}</ReactMarkdown>}
+          {reviews.map(review => (
+            <div
+              className="flex min-h-[24px] w-full flex-row items-center justify-evenly p-2 text-xl"
+              key={review.page_number}
+            >
+              <span className="font-mono">Page {review.page_number}</span>
+              <Tippy
+                content={<ReactMarkdown>{review.review_description}</ReactMarkdown>}
+                arrow={true}
+                className="bg-darkBg1"
+                placement="right"
+              >
+                <div
+                  className={`${IconStyles.base} ${
+                    review.guideline_achieved == null && review.guideline_achieved !== false
+                      ? IconStyles.alert
+                      : review.guideline_achieved
+                        ? IconStyles.success
+                        : IconStyles.error
+                  }`}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    width="16" // Adjust the width
+                    height="16" // Adjust the height
+                    fill="currentColor"
+                    className={IconStyles.svgStyles}
                   >
-                    <div
-                      className="rounded-full bg-slate-500 p-2 hover:bg-darkBg4"
-                      data-popover-target=""
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        className="size-6"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 0 1 .67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 1 1-.671-1.34l.041-.022ZM12 9a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                  </Popover>
-                )}
-                {review.guideline_achieved && (
-                  <Popover
-                    trigger="click"
-                    content={<ReactMarkdown>{review.review_description}</ReactMarkdown>}
-                  >
-                    <div
-                      className="rounded-full bg-green-600 p-2 hover:bg-darkBg4"
-                      data-popover-target=""
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        className="size-6"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                  </Popover>
-                )}
-                {review.guideline_achieved !== null && review.guideline_achieved === false && (
-                  <Popover
-                    trigger="click"
-                    content={<ReactMarkdown>{review.review_description}</ReactMarkdown>}
-                  >
-                    <div
-                      className="rounded-full bg-red-600 p-2 hover:bg-darkBg4"
-                      data-popover-target=""
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        className="size-6"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                  </Popover>
-                )}
-              </div>
-            );
-          })}
+                    {review.guideline_achieved == null && review.guideline_achieved !== false && (
+                      <path
+                        fillRule="evenodd"
+                        d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 0 1 .67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 1 1-.671-1.34l.041-.022ZM12 9a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"
+                        clipRule="evenodd"
+                      />
+                    )}
+                    {review.guideline_achieved && (
+                      <path
+                        fillRule="evenodd"
+                        d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
+                        clipRule="evenodd"
+                      />
+                    )}
+                    {review.guideline_achieved !== null && review.guideline_achieved === false && (
+                      <path
+                        fillRule="evenodd"
+                        d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+                        clipRule="evenodd"
+                      />
+                    )}
+                  </svg>
+                </div>
+              </Tippy>
+            </div>
+          ))}
         </div>
         <div className="flex flex-[10%] items-center justify-center">
           {!processingHasStarted && (
@@ -209,19 +201,21 @@ export default () => {
             </div>
           )}
           {processingHasStarted && !isProcessing && (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="size-6"
-            >
-              <path
-                fillRule="evenodd"
-                d="M9 1.5H5.625c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5Zm6.61 10.936a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 14.47a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
-                clipRule="evenodd"
-              />
-              <path d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" />
-            </svg>
+            <div className="flex items-center justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="h-8 w-8 transform text-green-500 transition-transform hover:rotate-12 hover:scale-110"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M9 1.5H5.625c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5Zm6.61 10.936a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 14.47a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
+                  clipRule="evenodd"
+                />
+                <path d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" />
+              </svg>
+            </div>
           )}
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface Props {
   input: string | undefined;
@@ -7,19 +7,20 @@ interface Props {
 }
 
 const InputSection = ({ input, setInput, handleSend }: Props) => {
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const textareaRef = React.useRef<HTMLInputElement>(null);
+  const [isInputNotEmpty, setIsInputNotEmpty] = useState(false);
 
   useEffect(() => {
     if (textareaRef.current) {
-      // Reset height to auto to calculate the new scrollHeight
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
+    setIsInputNotEmpty(input ? input.trim().length > 0 : false);
   }, [input]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-    // Adjust height after setting the value
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInput(newValue);
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 300)}px`;
@@ -28,27 +29,44 @@ const InputSection = ({ input, setInput, handleSend }: Props) => {
 
   return (
     <div className="flex w-full basis-1/5">
-      <div className="flex w-[100%] basis-full items-center justify-center p-5">
-        <div className="flex basis-10/12">
-          <textarea
-            ref={textareaRef}
-            className="max-h-[100px] w-[100%] flex-1 resize-none rounded-xl border border-darkBg1 bg-darkBg1 px-4 py-2 text-textPrimary placeholder-textTert focus:outline-none"
-            placeholder="Type your message..."
-            value={input ? input : ''}
-            onChange={e => handleInputChange(e)}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-          />
-        </div>
+      <div className="relative flex w-[100%] basis-full items-center justify-center p-5">
+        <input
+          ref={textareaRef}
+          className="flex w-full rounded-full bg-darkBg1 p-5 pr-16 text-center" // Increase right padding
+          placeholder="Message APRV AI ..."
+          value={input || ''}
+          onChange={handleInputChange}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
+        />
         <button
           onClick={handleSend}
-          className="ml-2 items-center justify-center rounded-xl bg-buttonBlack p-5 px-4 font-bold text-textSecondary transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-slate-900"
+          className="absolute right-10 flex h-10 w-10 items-center justify-center rounded-full border border-gray-300/50 bg-buttonBlack text-textSecondary shadow-md transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:rotate-1 hover:scale-105 hover:bg-gradient-to-r hover:from-gray-700 hover:to-gray-800 hover:text-gray-200 hover:shadow-lg"
         >
-          Send
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d={
+                isInputNotEmpty
+                  ? 'M5 15l7-7 7 7' // Up arrow shape
+                  : 'M2 12l7 7 13-13' // Checkmark shape
+              }
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="transition-all duration-300"
+            />
+          </svg>
         </button>
       </div>
     </div>

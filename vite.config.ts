@@ -10,4 +10,9 @@ export default defineConfig({
     // If you need to access via LAN, set host to '0.0.0.0'
     // host: '0.0.0.0',
   },
+  build: {
+    outDir: 'dist', // Specify output directory if needed
+    sourcemap: false, // Disable sourcemaps for production to reduce size
+    // Additional production-specific settings
+  },
 });

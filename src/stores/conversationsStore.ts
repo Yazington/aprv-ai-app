@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type {} from '@redux-devtools/extension'; // required for devtools typing
 import { Message } from '../types/Message';
 import { Conversation } from '../types/Conversation';
+import { useGuidelineChecksStore } from './guidelineChecksStore';
 
 interface ConversationStore {
   selectedConversationId?: string;
@@ -19,14 +20,18 @@ interface ConversationStore {
   addMessageToSelectedConversation: (newMessage: Message) => Promise<void>;
   markLastMessageAsComplete: () => Promise<void>;
   concatTextToLastMessage: (text: string) => Promise<void>;
+  createNewConversation: () => Promise<void>;
+  reset: () => Promise<void>;
 }
-
-export const useConversationStore = create<ConversationStore>((set, get) => ({
+const initialState = {
   selectedConversationId: undefined,
   allUserConversations: [],
   selectedConversationMessages: [],
   selectedConversationUserInput: undefined,
   selectedConversation: undefined,
+};
+export const useConversationStore = create<ConversationStore>(set => ({
+  ...initialState,
 
   setSelectedConversationId: async (currentConversationId?: string) => {
     set({ selectedConversationId: currentConversationId });
@@ -81,4 +86,13 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
   setSelectedConversation: async (conversation: Conversation) => {
     set({ selectedConversation: conversation });
   },
+  createNewConversation: async () => {
+    set({
+      selectedConversationId: undefined,
+      selectedConversation: undefined,
+      selectedConversationMessages: [],
+    });
+    useGuidelineChecksStore.setState({ reviews: [] });
+  },
+  reset: async () => set(initialState),
 }));

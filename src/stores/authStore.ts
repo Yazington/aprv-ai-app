@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type {} from '@redux-devtools/extension'; // required for devtools typing
+import { useConversationStore } from './conversationsStore';
+import { useGuidelineChecksStore } from './guidelineChecksStore';
 
 interface AuthStore {
   access_token: string | null;
@@ -16,21 +18,27 @@ interface AuthStore {
   isExpired: () => boolean;
   logout: () => void;
 }
+const initialState = {
+  access_token: null,
+  exp: null,
+  user_id: null,
+  isLoggedIn: false,
+};
 
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
-      access_token: null,
-      exp: null,
-      user_id: null,
-      isLoggedIn: false,
-
+      ...initialState,
       setAccessToken: access_token => set({ access_token }),
       setExp: exp => set({ exp }),
       setUserId: user_id => set({ user_id }),
       setIsLoggedIn: isLoggedIn => set({ isLoggedIn }),
-
-      logout: () => set({ access_token: null, exp: null, user_id: null, isLoggedIn: false }),
+      // @ts-ignore
+      logout: () => {
+        set(initialState);
+        useConversationStore.getState().reset();
+        useGuidelineChecksStore.getState().reset();
+      },
       isExpired: () => {
         console.log('Checking if token is expired');
         const { access_token, exp } = get();

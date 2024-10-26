@@ -7,10 +7,13 @@ interface GuidelineChecksStore {
   setConversationReviews: (reviews: PageReview[]) => void;
 
   addReviewsForConversation: (reviews: PageReview[]) => void;
+  reset: () => Promise<void>;
 }
-
-export const useGuidelineChecksStore = create<GuidelineChecksStore>((set, get) => ({
+const initialState = {
   reviews: [],
+};
+export const useGuidelineChecksStore = create<GuidelineChecksStore>((set, get) => ({
+  ...initialState,
 
   setConversationReviews: (reviews: PageReview[]) => {
     set({ reviews });
@@ -23,4 +26,5 @@ export const useGuidelineChecksStore = create<GuidelineChecksStore>((set, get) =
 
     set({ reviews: updatedReviews });
   },
+  reset: async () => set(initialState),
 }));
