@@ -20,7 +20,7 @@ export const getUserId = (token: string) => {
 
 // Create an Axios instance
 export const apiClient = axios.create({
-  baseURL: 'https://api.aprv.ai',
+  baseURL: import.meta.env.VITE_APRV_AI_API_URL || 'http://localhost:9000',
   headers: {
     'Content-Type': 'application/json',
   },
