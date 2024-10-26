@@ -35,7 +35,7 @@ function App() {
       console.error('Error during login: token is invalid');
       return;
     }
-
+    // console.log('auth ' + auth_token);
     apiClient
       .post('/auth/google', { auth_token })
       .then(response => {
