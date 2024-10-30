@@ -32,7 +32,7 @@ const InputSection = ({ input, setInput, handleSend }: Props) => {
       <div className="relative flex w-[100%] basis-full items-center justify-center p-5">
         <input
           ref={textareaRef}
-          className="flex w-full rounded-full bg-darkBg1 p-5 pr-16 text-center" // Increase right padding
+          className="flex basis-[80%] rounded-full bg-darkBg4 p-4 text-center shadow-all-around focus:outline-none" // Increase right padding
           placeholder="Message APRV AI ..."
           value={input || ''}
           onChange={handleInputChange}
@@ -45,7 +45,7 @@ const InputSection = ({ input, setInput, handleSend }: Props) => {
         />
         <button
           onClick={handleSend}
-          className="absolute right-10 flex h-10 w-10 items-center justify-center rounded-full border border-gray-300/50 bg-buttonBlack text-textSecondary shadow-md transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:rotate-1 hover:scale-105 hover:bg-gradient-to-r hover:from-gray-700 hover:to-gray-800 hover:text-gray-200 hover:shadow-lg"
+          className="absolute right-[15%] flex h-10 w-10 items-center justify-center rounded-full border border-gray-300/50 bg-buttonBlack text-textSecondary shadow-md transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:rotate-1 hover:scale-105 hover:bg-gradient-to-r hover:from-gray-700 hover:to-gray-800 hover:text-gray-200 hover:shadow-lg"
         >
           <svg
             width="24"

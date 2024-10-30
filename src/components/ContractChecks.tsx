@@ -108,10 +108,10 @@ export default () => {
   };
   // Render component
   return (
-    <div className="flex h-[100%] w-full min-w-0 basis-[10%] shadow-lg shadow-black">
+    <div className="flex h-[100%] w-full min-w-0 basis-[10%] bg-darkBg4 shadow-lg shadow-black">
       <div className="flex h-[100%] w-full basis-full flex-col items-center justify-center">
         <div className="flex items-center justify-center border-b-2 border-gray-300 p-4">
-          <h1 className="text-xl font-semibold tracking-tight text-textPrimary">Contract Checks</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-textPrimary">Guidelines Checks</h1>
         </div>
         <div className="w-full basis-[88%] items-center justify-center divide-y overflow-y-auto">
           {reviews.map(review => (
@@ -123,7 +123,7 @@ export default () => {
               <Tippy
                 content={<ReactMarkdown>{review.review_description}</ReactMarkdown>}
                 arrow={true}
-                className="bg-darkBg1"
+                className="bg-darkBg3"
                 placement="right"
               >
                 <div

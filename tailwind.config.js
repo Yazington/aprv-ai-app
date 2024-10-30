@@ -31,7 +31,7 @@ module.exports = {
         buttonBlack: '#000000',  // Completely black for buttons
       },
       boxShadow: {
-        'all-around': `inset 0 0 0.5px 1px hsla(0, 0%,  100%, 0.075), 
+        'all-around': `inset 0 0 0.5px 1px hsla(0, 0%,  100%, 0.3), 
           /* shadow ring 👇 */
           0 0 0 1px hsla(0, 0%, 0%, 0.05),
           /* multiple soft shadows 👇 */
