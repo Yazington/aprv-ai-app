@@ -28,14 +28,11 @@ export default () => {
       createNewConversation: state.createNewConversation,
     }))
   );
-  const [isLoading, setIsLoading] = useState<boolean | undefined>(undefined);
 
+  const [isLoading, setIsLoading] = useState<boolean | undefined>(undefined);
   const [designFiles, setDesignFiles] = useState<File[] | null>([]);
   const [otherFiles, setOtherFiles] = useState<File[] | null>([]);
-  // TODO: check if we need to save those files on disk instead
-  // const isDesignAlreadyUploaded = selectedConversation?.design_id ? true : false;
-  // const isGuidelineAlreadyUploaded = selectedConversation?.contract_id ? true : false;
-  // // const isLoading = designFiles?.length > 0 && isGuidelineAlreadyUploaded == false;
+
   useEffect(() => {
     if (userId) {
       apiClient
@@ -61,7 +58,6 @@ export default () => {
     }
   }, [selectedConversationId]);
 
-  //TODO: put this logic in the store instead
   const loadConversation = async (selectedConversationId: string | undefined) => {
     if (!selectedConversationId) {
       return;
@@ -112,7 +108,7 @@ export default () => {
   };
 
   return (
-    <div className="flex min-w-0 basis-[20%]">
+    <div className="flex min-w-0 basis-[10%] bg-darkBg4">
       <div className="flex h-screen w-full min-w-0 basis-[100%] flex-col content-center justify-center shadow-all-around">
         <div className="flex max-h-[100px] w-full basis-1/12 flex-row items-center justify-evenly">
           <button
@@ -132,7 +128,7 @@ export default () => {
             </button>
           </div>
         </div>
-        <div className="flex w-full min-w-0 basis-7/12 overflow-y-auto overflow-x-hidden bg-darkBg2">
+        <div className="flex w-full min-w-0 basis-7/12 overflow-y-auto overflow-x-hidden">
           {allUserConversations.length > 0 && (
             <ul className="w-full list-inside list-disc pl-0">
               {allUserConversations.map(conversation => (
@@ -141,7 +137,7 @@ export default () => {
                   className="flex list-none flex-col"
                 >
                   <button
-                    className={`w-full overflow-hidden truncate whitespace-nowrap rounded-lg p-2 text-sm font-medium transition ${
+                    className={`w-full overflow-hidden truncate whitespace-nowrap p-2 text-sm font-medium transition ${
                       conversation.id === selectedConversationId
                         ? 'text-highlightText bg-sky-700' // Add your styles for the selected conversation here
                         : 'bg-buttonBlack text-textSecondary hover:bg-slate-800'
@@ -167,10 +163,10 @@ export default () => {
                   .map((file, index) => (
                     <li
                       key={(file.lastModified || '') + '' + index + 'other'}
-                      className="flex list-none flex-col border-[0.5px] border-r-amber-200 hover:bg-sky-700"
+                      className="flex list-none flex-col border-[0.5px] text-sm text-textTert hover:bg-sky-700"
                     >
-                      <span>{file.name}</span>
-                      <span>{file.type}</span>
+                      <span>{truncateMiddle(file.name, 15)}</span>
+                      <span>{truncateMiddle(file.type, 15)}</span>
                       <span>{(file.size / 1000000).toFixed(2)} MB</span>
                     </li>
                   ))}
@@ -184,7 +180,6 @@ export default () => {
                 multiple={true}
                 name="design"
                 types={fileTypes}
-                label={'Upload 1 Design Image (PNG, JPG)'}
                 className="flex min-h-[50px] w-full items-center justify-center border-2 border-dashed bg-darkBg2 text-center"
               />
             </div>
@@ -203,10 +198,10 @@ export default () => {
                     .map((file, index) => (
                       <li
                         key={file.lastModified + index + 'other'}
-                        className="flex list-none flex-col border-[0.5px] border-r-amber-200 hover:bg-sky-700"
+                        className="flex list-none flex-col border-[0.5px] text-sm text-textTert hover:bg-sky-700"
                       >
-                        <span>{file.name}</span>
-                        <span>{file.type}</span>
+                        <span>{truncateMiddle(file.name, 15)}</span>
+                        <span>{truncateMiddle(file.type, 15)}</span>
                         <span>{file.size / 1000000} MB</span>
                       </li>
                     ))}
@@ -215,13 +210,12 @@ export default () => {
           </div>
           {!isLoading && (
             <div className="w-full">
-              <div className="flex w-full min-w-0 flex-1 flex-col content-center justify-center truncate">
+              <div className="w-full min-w-0 flex-1 flex-col content-center justify-center truncate">
                 <CustomFileUploader
                   handleChange={(fileList: FileList) => handleFileUpload(fileList, false)}
                   multiple={true}
                   name="guideline"
                   types={['PDF']}
-                  label={'Upload Multiple Guidelines (PDF)'}
                   className="flex min-h-[50px] w-full items-center justify-center border-2 border-dashed bg-darkBg2 text-center"
                 />
               </div>
@@ -256,3 +250,8 @@ export default () => {
     </div>
   );
 };
+function truncateMiddle(text: string, maxLength: number): string {
+  if (!text || text.length <= maxLength) return text;
+  const endLength = Math.floor(maxLength / 2);
+  return `${text.slice(0, endLength)}...${text.slice(-endLength)}`;
+}

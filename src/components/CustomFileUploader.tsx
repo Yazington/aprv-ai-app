@@ -1,23 +1,16 @@
-// CustomFileUploader.tsx
 import React, { useRef, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUpload } from '@fortawesome/free-solid-svg-icons';
 
 interface CustomFileUploaderProps {
   handleChange: (files: FileList) => void;
   multiple?: boolean;
   name?: string;
   types?: string[];
-  label?: string;
   className?: string;
 }
 
-const CustomFileUploader: React.FC<CustomFileUploaderProps> = ({
-  handleChange,
-  multiple = false,
-  name,
-  types = [],
-  label = 'Upload Files',
-  className = '',
-}) => {
+const CustomFileUploader: React.FC<CustomFileUploaderProps> = ({ handleChange, multiple = false, name, types = [], className = '' }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
 
@@ -53,7 +46,7 @@ const CustomFileUploader: React.FC<CustomFileUploaderProps> = ({
 
   return (
     <div
-      className={`${className} ${dragActive ? 'drag-active' : ''}`}
+      className={`${className} ${dragActive ? 'drag-active' : ''} text-sm`}
       onClick={onButtonClick}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
@@ -69,7 +62,22 @@ const CustomFileUploader: React.FC<CustomFileUploaderProps> = ({
         onChange={onFileChange}
         style={{ display: 'none' }}
       />
-      <div className="uploader-content">{label}</div>
+      <div
+        className="uploader-content"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        <FontAwesomeIcon
+          icon={faUpload}
+          size="lg"
+        />
+      </div>
     </div>
   );
 };

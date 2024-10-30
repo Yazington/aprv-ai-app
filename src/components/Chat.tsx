@@ -30,11 +30,11 @@ const PreviousMessages = ({ messages }: { messages: Message[] }) => {
           key={'previous-messages-' + index}
           className={`flex basis-full items-center p-5 ${message.is_from_human ? 'justify-end' : ''}`}
         >
-          <div className="basis-[10%]">
+          <div className="w-full basis-[10%] items-center justify-center">
             {!message.is_from_human && (
               <FaRobot
                 size={'40px'}
-                className="mr-2 text-gray-500"
+                className="mr-2 w-full basis-[10%] items-center justify-center text-gray-500"
               />
             )}
           </div>
@@ -46,11 +46,11 @@ const PreviousMessages = ({ messages }: { messages: Message[] }) => {
               {message.content}
             </ReactMarkdown>
           </div>
-          <div className="basis-[10%]">
+          <div className="w-full basis-[10%] items-center justify-center">
             {message.is_from_human && (
               <RiUser6Line
                 size={'40px'}
-                className="ml-2 text-blue-500"
+                className="ml-2 w-full basis-[10%] items-center justify-center text-blue-500"
               />
             )}
           </div>
@@ -208,12 +208,11 @@ export const Chat = () => {
   };
 
   return (
-    <div className="flex min-w-0 basis-[70%]">
+    <div className="flex min-w-0 basis-[80%]">
       <div className="flex w-full min-w-0 flex-col">
         <div className="flex w-full min-w-0 flex-grow overflow-y-hidden">
           <div className="flex w-full min-w-0 flex-col overflow-y-auto overflow-x-hidden">
             <PreviousMessages messages={previousMessages} />
-            {/* <LastMessage message={lastMessage} /> */}
           </div>
         </div>
         <InputSection

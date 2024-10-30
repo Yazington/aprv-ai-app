@@ -67,10 +67,10 @@ function App() {
         </div>
       )}
       {isLoggedIn && (
-        <div className="flex h-screen w-screen basis-full flex-row content-center justify-center text-textPrimary subpixel-antialiased dark:bg-darkBg3">
-          <ContractChecks />
-          <Chat />
+        <div className="flex h-screen w-screen basis-full flex-row content-center justify-center text-textPrimary subpixel-antialiased dark:bg-darkBg1">
           <Upload />
+          <Chat />
+          <ContractChecks />
         </div>
       )}
     </GoogleOAuthProvider>
