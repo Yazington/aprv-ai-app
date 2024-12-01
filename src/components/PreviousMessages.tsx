@@ -17,14 +17,7 @@ const PreviousMessages = () => {
   );
 
   const [regularMessages, setRegularMessages] = useState<Message[]>(selectedConversationMessages);
-  const [messagesWithNewStatus, setMessagesWithNewStatus] = useState<Message[]>([]);
 
-  useEffect(() => {
-    if (selectedConversationMessages.length > 0) {
-      const lastMessage = selectedConversationMessages[selectedConversationMessages.length - 1];
-      setMessagesWithNewStatus(prev => [...prev, { ...lastMessage, isNew: true }]);
-    }
-  }, [selectedConversationMessages]);
   useEffect(() => {
     // Scroll to bottom whenever messages change
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
