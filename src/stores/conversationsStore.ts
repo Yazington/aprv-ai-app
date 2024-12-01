@@ -10,12 +10,14 @@ interface ConversationStore {
   selectedConversationMessages: Message[]; // last message is the one potentially streaming
   selectedConversationUserInput?: string;
   selectedConversation?: Conversation;
+  currentToolInUse?: string;
 
   setSelectedConversationId: (conversationId?: string) => Promise<void>;
   setAllUserConversations: (allUserConversations: Conversation[]) => Promise<void>;
   setSelectedConversationMessages: (messages: Message[]) => Promise<void>;
   setSelectedConversationUserInput: (input?: string) => Promise<void>;
   setSelectedConversation: (conversation: Conversation) => Promise<void>;
+  setCurrentToolInUse: (toolInUse?: string) => Promise<void>;
 
   addMessageToSelectedConversation: (newMessage: Message) => Promise<void>;
   markLastMessageAsComplete: () => Promise<void>;
@@ -95,4 +97,5 @@ export const useConversationStore = create<ConversationStore>(set => ({
     useGuidelineChecksStore.setState({ reviews: [] });
   },
   reset: async () => set(initialState),
+  setCurrentToolInUse: async (toolInUse?: string) => set({ currentToolInUse: toolInUse }),
 }));

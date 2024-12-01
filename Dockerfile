@@ -1,5 +1,5 @@
 # Use node image to build the Vite app
-FROM node:18 AS build
+FROM node:20 AS build
 ARG VITE_APRV_AI_API_URL
 # Use the ARG in your Dockerfile as needed, for example:
 ENV VITE_APRV_AI_API_URL=$VITE_APRV_AI_API_URL

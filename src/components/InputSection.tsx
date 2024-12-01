@@ -32,7 +32,7 @@ const InputSection = ({ input, setInput, handleSend }: Props) => {
       <div className="relative flex w-[100%] basis-full items-center justify-center p-5">
         <input
           ref={textareaRef}
-          className="flex basis-[80%] rounded-full bg-darkBg4 p-4 text-center shadow-all-around focus:outline-none" // Increase right padding
+          className="flex basis-[50%] rounded-full bg-darkBg4 p-4 text-center shadow-all-around focus:outline-none" // Increase right padding
           placeholder="Message APRV AI ..."
           value={input || ''}
           onChange={handleInputChange}

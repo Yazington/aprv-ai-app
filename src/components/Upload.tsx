@@ -109,19 +109,19 @@ export default () => {
 
   return (
     <div className="flex min-w-0 basis-[10%] bg-darkBg4">
-      <div className="flex h-screen w-full min-w-0 basis-[100%] flex-col content-center justify-center shadow-all-around">
+      <div className="flex h-screen w-full min-w-0 basis-[100%] flex-col content-center justify-center">
         <div className="flex max-h-[100px] w-full basis-1/12 flex-row items-center justify-evenly">
           <button
             className="rounded-full bg-darkBg4 p-2 text-textSecondary shadow-all-around transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:text-gray-200 hover:shadow-lg"
             onClick={createNewConversation}
             aria-label="Create New Conversation"
           >
-            <IoCreateOutline size={'25px'} />
+            <IoCreateOutline size={'20px'} />
           </button>
 
           <div className="flex min-w-[100px] basis-1/12 items-center justify-center">
             <button
-              className="rounded-full bg-darkBg4 px-4 py-2 text-textSecondary shadow-all-around transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:text-gray-200 hover:shadow-lg"
+              className="rounded-full bg-darkBg4 px-4 py-2 text-xs text-textSecondary shadow-all-around transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:text-gray-200 hover:shadow-lg" // Added 'text-sm' for smaller font
               onClick={logout}
             >
               Sign Out
@@ -137,10 +137,10 @@ export default () => {
                   className="flex list-none flex-col"
                 >
                   <button
-                    className={`w-full overflow-hidden truncate whitespace-nowrap p-2 text-sm font-medium transition ${
+                    className={`w-full overflow-hidden truncate whitespace-nowrap p-2 text-xs font-medium transition ${
                       conversation.id === selectedConversationId
-                        ? 'text-highlightText bg-sky-700' // Add your styles for the selected conversation here
-                        : 'bg-buttonBlack text-textSecondary hover:bg-slate-800'
+                        ? 'text-highlightText bg-sky-700 text-textPrimary' // Add your styles for the selected conversation here
+                        : 'bg-buttonBlack text-textTert hover:bg-slate-800'
                     }`}
                     onClick={() => loadConversation(conversation.id)}
                   >
@@ -153,7 +153,7 @@ export default () => {
         </div>
 
         <div className="flex min-w-0 basis-2/12 flex-col truncate">
-          <div className="min-w-0 truncate text-pretty text-center">Design Upload</div>
+          <div className="m-4 min-w-0 truncate text-pretty text-center text-sm">Design Upload</div>
 
           <div className="w-full overflow-y-auto">
             {designFiles && designFiles.length > 0 && (
@@ -187,7 +187,7 @@ export default () => {
         </div>
 
         <div className="flex w-full min-w-0 basis-2/12 flex-col items-center justify-center truncate">
-          <div className="w-full items-center justify-center text-pretty text-center">Guideline Upload</div>
+          <div className="m-4 w-full items-center justify-center text-pretty text-center text-sm">Guideline Upload</div>
           <div className="w-full overflow-y-auto">
             {otherFiles !== null && otherFiles.length > 0 && (
               <ul className="w-full list-inside list-disc pl-0">

@@ -6,61 +6,59 @@ import { useShallow } from 'zustand/react/shallow';
 import { useConversationStore } from '../stores/conversationsStore';
 import { useAuthStore } from '../stores/authStore';
 import { useBufferedStreaming } from '../hooks/useBufferedStreaming';
-import ReactMarkdown from 'react-markdown';
-import { FaRobot } from 'react-icons/fa';
-import { RiUser6Line } from 'react-icons/ri';
+import PreviousMessages from './PreviousMessages';
 
 interface StreamedContent {
   content: string;
 }
 
-// Component to render all previous messages
-const PreviousMessages = ({ messages }: { messages: Message[] }) => {
-  const messageEndRef = useRef<HTMLDivElement>(null);
+// // Component to render all previous messages
+// const PreviousMessages = ({ messages }: { messages: Message[] }) => {
+//   const messageEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Scroll to bottom whenever messages change
-    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-  // const reversedMessages = messages.reverse()
-  return (
-    <div className="flex max-h-full min-w-0 flex-col overflow-y-auto">
-      {messages.map((message, index) => (
-        <div
-          key={'previous-messages-' + index}
-          className={`flex basis-full items-center p-5 ${message.is_from_human ? 'justify-end' : ''}`}
-        >
-          <div className="w-full basis-[10%] items-center justify-center">
-            {!message.is_from_human && (
-              <FaRobot
-                size={'40px'}
-                className="mr-2 w-full basis-[10%] items-center justify-center text-gray-500"
-              />
-            )}
-          </div>
-          <div className={`p-5 ${message.is_from_human ? 'rounded-2xl bg-darkBg4 shadow-all-around' : ''} min-w-0 basis-[90%] break-words`}>
-            <ReactMarkdown
-              key={index + 'message'}
-              className={`message ${message.is_from_human ? 'justify-end text-end' : 'justify-start text-start'} leading-tight tracking-tight`}
-            >
-              {message.content}
-            </ReactMarkdown>
-          </div>
-          <div className="w-full basis-[10%] items-center justify-center">
-            {message.is_from_human && (
-              <RiUser6Line
-                size={'40px'}
-                className="ml-2 w-full basis-[10%] items-center justify-center text-blue-500"
-              />
-            )}
-          </div>
-        </div>
-      ))}
-      {/* Reference element at the end of the messages */}
-      <div ref={messageEndRef} />
-    </div>
-  );
-};
+//   useEffect(() => {
+//     // Scroll to bottom whenever messages change
+//     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+//   }, [messages]);
+//   // const reversedMessages = messages.reverse()
+//   return (
+//     <div className="flex max-h-full min-w-0 flex-col overflow-y-auto">
+//       {messages.map((message, index) => (
+//         <div
+//           key={'previous-messages-' + index}
+//           className={`flex basis-full items-center p-5 ${message.is_from_human ? 'justify-end' : ''}`}
+//         >
+//           <div className="w-full basis-[10%] items-center justify-center">
+//             {!message.is_from_human && (
+//               <FaRobot
+//                 size={'40px'}
+//                 className="mr-2 w-full basis-[10%] items-center justify-center text-gray-500"
+//               />
+//             )}
+//           </div>
+//           <div className={`p-5 ${message.is_from_human ? 'rounded-2xl bg-darkBg4 shadow-all-around' : ''} min-w-0 basis-[90%] break-words`}>
+//             <ReactMarkdown
+//               key={index + 'message'}
+//               className={`message ${message.is_from_human ? 'justify-end text-end' : 'justify-start text-start'} leading-tight tracking-tight`}
+//             >
+//               {message.content}
+//             </ReactMarkdown>
+//           </div>
+//           <div className="w-full basis-[10%] items-center justify-center">
+//             {message.is_from_human && (
+//               <RiUser6Line
+//                 size={'40px'}
+//                 className="ml-2 w-full basis-[10%] items-center justify-center text-blue-500"
+//               />
+//             )}
+//           </div>
+//         </div>
+//       ))}
+//       {/* Reference element at the end of the messages */}
+//       <div ref={messageEndRef} />
+//     </div>
+//   );
+// };
 
 export const Chat = () => {
   const {
@@ -71,19 +69,22 @@ export const Chat = () => {
     setSelectedConversationUserInput,
     markLastMessageAsComplete,
     setSelectedConversation,
+    setCurrentToolInUse,
   } = useConversationStore(
     useShallow(state => ({
       addMessageToSelectedConversation: state.addMessageToSelectedConversation,
       selectedConversationId: state.selectedConversationId,
       setSelectedConversationId: state.setSelectedConversationId,
       selectedConversationUserInput: state.selectedConversationUserInput,
+      currentToolInUse: state.currentToolInUse,
       setSelectedConversationUserInput: state.setSelectedConversationUserInput,
       markLastMessageAsComplete: state.markLastMessageAsComplete,
       setSelectedConversation: state.setSelectedConversation,
+      setCurrentToolInUse: state.setCurrentToolInUse,
     }))
   );
 
-  const { addToBuffer, previousMessages } = useBufferedStreaming();
+  const { addToBuffer } = useBufferedStreaming();
 
   const { access_token: accessToken, user_id: userId } = useAuthStore(
     useShallow(state => ({
@@ -174,13 +175,42 @@ export const Chat = () => {
 
   const handleStreamData = (event: any) => {
     const data: StreamedContent = JSON.parse(event.data);
-    const { content } = data;
+    let { content } = data;
 
     if (content.includes('[DONE-STREAMING-APRV-AI]')) {
       markLastMessageAsComplete();
       closeEventSource();
       return;
     }
+
+    // Check for tool start
+    if (content.includes('[TOOL_USAGE_APRV_AI]:')) {
+      const toolName = content.replace('[TOOL_USAGE_APRV_AI]:', '').trim();
+      setCurrentToolInUse(toolName);
+      // setActiveTools(prev => ({ ...prev, [toolName]: 'processing' }));
+      // console.log(`Processing started: ${toolName}`);
+      // Optionally add a placeholder or message to the buffer
+      // addToBuffer(`Processing: ${toolName}...`);
+      // return;
+    }
+
+    // Check for tool done
+    if (content.includes('[TOOL_USAGE_APRV_AI_DONE]:')) {
+      // const toolName = content.replace('[TOOL_USAGE_APRV_AI_DONE]:', '').trim();
+      setCurrentToolInUse(undefined);
+      // setActiveTools(prev => {
+      //   const newStates = { ...prev };
+      //   delete newStates[toolName];
+      //   return newStates;
+      // });
+      // console.log(`Processing finished: ${toolName}`);
+      // // Optionally update the buffer to indicate completion
+      // addToBuffer(`Completed: ${toolName}`);
+      // return;
+    }
+    // content = content.replace('[TOOL_USAGE_APRV_AI]:', '');
+
+    // For regular content, add to buffer
     if (data) {
       addToBuffer(content);
     }
@@ -210,9 +240,13 @@ export const Chat = () => {
   return (
     <div className="flex min-w-0 basis-[80%]">
       <div className="flex w-full min-w-0 flex-col">
+        {/* <ToolStatusComponent activeTools={activeTools} /> */}
         <div className="flex w-full min-w-0 flex-grow overflow-y-hidden">
           <div className="flex w-full min-w-0 flex-col overflow-y-auto overflow-x-hidden">
-            <PreviousMessages messages={previousMessages} />
+            <PreviousMessages
+            // messages={previousMessages}
+            // activeTools={activeTools}
+            />
           </div>
         </div>
         <InputSection

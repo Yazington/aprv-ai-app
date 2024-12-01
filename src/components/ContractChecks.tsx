@@ -111,14 +111,14 @@ export default () => {
     <div className="flex h-[100%] w-full min-w-0 basis-[10%] bg-darkBg4 shadow-lg shadow-black">
       <div className="flex h-[100%] w-full basis-full flex-col items-center justify-center">
         <div className="flex items-center justify-center border-b-2 border-gray-300 p-4">
-          <h1 className="text-xl font-semibold tracking-tight text-textPrimary">Guidelines Checks</h1>
+          <div className="text-md font-semibold tracking-tight text-textPrimary">Guidelines Checks</div>
         </div>
         <div className="w-full basis-[88%] items-center justify-center divide-y overflow-y-auto">
           {reviews
             .sort((a, b) => a.page_number - b.page_number) // Sort by page_number
             .map(review => (
               <div
-                className="flex min-h-[24px] w-full flex-row items-center justify-evenly p-2 text-xl"
+                className="flex min-h-[24px] w-full flex-row items-center justify-evenly p-2 text-xs"
                 key={review.page_number}
               >
                 <span className="font-mono">Page {review.page_number}</span>
@@ -175,10 +175,10 @@ export default () => {
         <div className="flex flex-[10%] items-center justify-center">
           {!processingHasStarted && (
             <button
-              className="flex max-h-10 items-center justify-center rounded-full bg-buttonBlack px-4 py-2 font-bold text-textSecondary transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-slate-900"
+              className="flex max-h-10 items-center justify-center rounded-full bg-buttonBlack px-4 py-2 text-sm font-bold text-textSecondary transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-slate-900"
               onClick={processDesign}
             >
-              Full Compliance Check
+              Compliance Check
             </button>
           )}
           {processingHasStarted && isProcessing && (
