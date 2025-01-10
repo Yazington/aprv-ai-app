@@ -48,14 +48,14 @@ const PreviousMessages = () => {
     visible: (i: number) => ({
       opacity: 1,
       transition: {
-        delay: i * 0.05, // Increased delay
-        duration: 0.3, // Increased duration
+        delay: i * 0.05,
+        duration: 0.3,
       },
     }),
     stream: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1, // Increased staggerChildren
+        staggerChildren: 0.1,
       },
     },
   };
@@ -65,19 +65,19 @@ const PreviousMessages = () => {
     visible: {
       opacity: 1,
       transition: {
-        duration: 0.5, // Fade-in duration
+        duration: 0.5,
       },
     },
     exit: {
       opacity: 0,
       transition: {
-        duration: 0.3, // Fade-out duration
+        duration: 0.3,
       },
     },
   };
 
   return (
-    <div className="grid min-w-0 grid-cols-1 gap-6 pb-20 text-sm">
+    <div className="grid min-w-0 grid-cols-1 gap-6 overflow-hidden pb-20 text-sm">
       <AnimatePresence>
         {regularMessages.map((message, index) => (
           <motion.div
@@ -94,8 +94,8 @@ const PreviousMessages = () => {
             <div className="flex h-10 w-10 items-start justify-center">
               {!message.is_from_human && (
                 <div className="group relative">
-                  <div className="animate-tilt bg-lightBg4 absolute -inset-0.5 rounded-full opacity-20 blur transition duration-1000 group-hover:opacity-30 dark:bg-darkBg4"></div>
-                  <div className="bg-lightBg4/70 relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full shadow ring-1 ring-black/10 dark:bg-darkBg4/70 dark:ring-white/10">
+                  <div className="absolute -inset-0.5 rounded-full bg-lightBg4 transition duration-1000 dark:bg-darkBg4"></div>
+                  <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-lightBg4 shadow ring-1 ring-black/10 dark:bg-darkBg4 dark:ring-white/10">
                     <img
                       src="/bot-avatar.png"
                       alt="AI Assistant"
@@ -114,8 +114,8 @@ const PreviousMessages = () => {
             <motion.div
               className={`group relative min-w-0 break-words p-4 ${
                 message.is_from_human
-                  ? 'bg-lightBg4/10 rounded-2xl rounded-tr-sm shadow-md backdrop-blur-sm dark:bg-darkBg4/10'
-                  : 'bg-lightBg2/90 rounded-2xl rounded-tl-sm shadow-md backdrop-blur-sm dark:bg-darkBg2/80'
+                  ? 'rounded-2xl rounded-tr-sm bg-lightBg4 shadow-md dark:bg-darkBg4'
+                  : 'rounded-2xl rounded-tl-sm bg-lightBg3 shadow-md dark:bg-darkBg3'
               } transition-all duration-300 hover:shadow-xl`}
             >
               <motion.div
@@ -137,13 +137,13 @@ const PreviousMessages = () => {
                     code: ({ node, ...props }) => (
                       <code
                         {...props}
-                        className="bg-lightBg3/50 rounded px-1 py-0.5 text-gray-800 dark:bg-darkBg2/50 dark:text-gray-200"
+                        className="rounded bg-lightBg3 px-1 py-0.5 text-gray-800 dark:bg-darkBg2 dark:text-gray-200"
                       />
                     ),
                     pre: ({ node, ...props }) => (
                       <pre
                         {...props}
-                        className="bg-lightBg3/50 overflow-x-auto rounded-lg p-4 backdrop-blur-sm dark:bg-darkBg2/50"
+                        className="overflow-hidden rounded-lg bg-lightBg3 p-4 dark:bg-darkBg2"
                       />
                     ),
                   }}
@@ -155,8 +155,8 @@ const PreviousMessages = () => {
             <div className="flex h-10 w-10 items-start justify-center">
               {message.is_from_human && (
                 <div className="group relative">
-                  <div className="animate-tilt bg-lightBg4 absolute -inset-0.5 rounded-full opacity-20 blur transition duration-1000 group-hover:opacity-30 dark:bg-darkBg4"></div>
-                  <div className="bg-lightBg4/70 relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full shadow ring-1 ring-black/10 dark:bg-darkBg4/70 dark:ring-white/10">
+                  <div className="absolute -inset-0.5 rounded-full bg-lightBg4 transition duration-1000 dark:bg-darkBg4"></div>
+                  <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-lightBg4 shadow ring-1 ring-black/10 dark:bg-darkBg4 dark:ring-white/10">
                     <img
                       src="/user-avatar.png"
                       alt="User"

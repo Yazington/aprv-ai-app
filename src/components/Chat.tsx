@@ -224,7 +224,7 @@ export const Chat = () => {
     <div className="flex h-screen flex-col py-4">
       <div className="relative flex h-full flex-col">
         <div className="flex-1 overflow-hidden">
-          <div className="bg-lightBg3/30 h-full overflow-y-auto rounded-lg p-4 shadow-md backdrop-blur-sm dark:bg-darkBg2/50">
+          <div className="h-full overflow-y-auto bg-lightBg2 p-4 shadow-md [--scrollbar-left:0] dark:bg-darkBg2">
             <PreviousMessages
             // messages={previousMessages}
             // activeTools={activeTools}

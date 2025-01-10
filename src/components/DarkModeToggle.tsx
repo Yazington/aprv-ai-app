@@ -15,10 +15,10 @@ export const DarkModeToggle = () => {
   return (
     <button
       onClick={() => setIsDark(!isDark)}
-      className="bg-lightBg4/90 group fixed right-4 top-4 z-50 flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl dark:bg-darkBg4/90"
+      className="rounded-xl bg-lightBg3/50 p-3 text-textSecondary backdrop-blur-sm transition-all duration-300 hover:bg-lightBg4/50 hover:text-textPrimary hover:shadow-lg dark:bg-darkBg3/50 dark:text-textTert dark:hover:bg-darkBg4/50 dark:hover:text-textSecondary"
       aria-label="Toggle dark mode"
     >
-      <div className="group-hover:bg-lightBg4 flex h-full w-full items-center justify-center rounded-xl transition-all duration-300 dark:group-hover:bg-darkBg4">
+      <div className="flex h-full w-full items-center justify-center rounded-xl transition-all duration-300 group-hover:bg-lightBg4 dark:group-hover:bg-darkBg4">
         {isDark ? (
           <svg
             xmlns="http://www.w3.org/2000/svg"

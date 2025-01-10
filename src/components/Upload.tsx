@@ -6,6 +6,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { Message } from '../types/Message';
 import CustomFileUploader from './CustomFileUploader';
 import { IoCreateOutline } from 'react-icons/io5';
+import { DarkModeToggle } from './DarkModeToggle';
 
 const fileTypes = ['PNG', 'JPG', 'JPEG', 'PDF'];
 
@@ -114,27 +115,30 @@ export default function Upload() {
   };
 
   return (
-    <div className="flex h-full w-full flex-col p-4">
-      <div className="flex h-full flex-col space-y-4">
-        <div className="bg-lightBg2/90 flex items-center justify-between rounded-lg p-4 backdrop-blur-sm dark:bg-darkBg2/80">
-          <button
-            className="bg-lightBg3/50 hover:bg-lightBg4/50 rounded-xl p-3 text-textSecondary backdrop-blur-sm transition-all duration-300 hover:text-textPrimary hover:shadow-lg dark:bg-darkBg3/50 dark:text-textTert dark:hover:bg-darkBg4/50 dark:hover:text-textSecondary"
-            onClick={createNewConversation}
-            aria-label="Create New Conversation"
-          >
-            <IoCreateOutline size={'20px'} />
-          </button>
+    <div className="flex h-full w-full flex-col">
+      <div className="flex h-full flex-col">
+        <div className="flex items-center justify-between border-b border-lightBg3 bg-lightBg2 p-4 dark:border-darkBg3 dark:bg-darkBg2">
+          <div className="flex items-center space-x-2">
+            <button
+              className="rounded-xl bg-lightBg3 p-3 text-textSecondary transition-all duration-300 hover:bg-lightBg4 hover:text-textPrimary hover:shadow-lg dark:bg-darkBg3 dark:text-textTert dark:hover:bg-darkBg4 dark:hover:text-textSecondary"
+              onClick={createNewConversation}
+              aria-label="Create New Conversation"
+            >
+              <IoCreateOutline size={'20px'} />
+            </button>
+            <DarkModeToggle />
+          </div>
 
           <div className="flex min-w-[100px] basis-1/12 items-center justify-center">
             <button
-              className="bg-lightBg4/20 hover:bg-lightBg4/30 rounded-xl px-4 py-2 text-sm font-medium text-textSecondary backdrop-blur-sm transition-all duration-300 hover:text-textPrimary dark:bg-darkBg4/20 dark:hover:bg-darkBg4/30"
+              className="rounded-xl bg-lightBg4 px-4 py-2 text-sm font-medium text-textSecondary transition-all duration-300 hover:bg-lightBg4 hover:text-textPrimary dark:bg-darkBg4 dark:hover:bg-darkBg4"
               onClick={logout}
             >
               Sign Out
             </button>
           </div>
         </div>
-        <div className="scrollbar-thin bg-lightBg3/30 flex-1 overflow-y-auto rounded-lg p-2 backdrop-blur-sm dark:bg-darkBg3/30">
+        <div className="scrollbar-thin flex-1 overflow-y-auto bg-lightBg3 p-2 [--scrollbar-left:0] dark:bg-darkBg3">
           {allUserConversations.length > 0 && (
             <ul className="space-y-2">
               {allUserConversations.map(conversation => (
@@ -143,10 +147,10 @@ export default function Upload() {
                   className="flex list-none flex-col"
                 >
                   <button
-                    className={`w-full overflow-hidden truncate rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
+                    className={`w-full overflow-hidden truncate p-3 text-sm font-medium transition-all duration-300 ${
                       conversation.id === selectedConversationId
                         ? 'bg-lightBg4/20 text-textPrimary shadow-md dark:bg-darkBg4/20 dark:text-textSecondary'
-                        : 'bg-lightBg3/50 hover:bg-lightBg4/50 text-textSecondary hover:text-textPrimary dark:bg-darkBg3/50 dark:text-textTert dark:hover:bg-darkBg4/50 dark:hover:text-textSecondary'
+                        : 'bg-lightBg3/50 text-textSecondary hover:bg-lightBg4/50 hover:text-textPrimary dark:bg-darkBg3/50 dark:text-textTert dark:hover:bg-darkBg4/50 dark:hover:text-textSecondary'
                     }`}
                     onClick={() => loadConversation(conversation.id)}
                   >
@@ -158,10 +162,10 @@ export default function Upload() {
           )}
         </div>
 
-        <div className="bg-lightBg3/30 flex-shrink-0 rounded-lg p-4 backdrop-blur-sm dark:bg-darkBg3/30">
+        <div className="flex-shrink-0 border-t border-lightBg4 bg-lightBg3 p-4 dark:border-darkBg4 dark:bg-darkBg3">
           <h3 className="mb-4 text-center text-base font-semibold text-textPrimary dark:text-textSecondary">Design Upload</h3>
 
-          <div className="w-full overflow-y-auto">
+          <div className="w-full overflow-hidden">
             {designFiles && designFiles.length > 0 && (
               <ul className="mb-4 space-y-2">
                 {designFiles
@@ -169,7 +173,7 @@ export default function Upload() {
                   .map((file, index) => (
                     <li
                       key={(file.lastModified || '') + '' + index + 'other'}
-                      className="bg-lightBg4/50 hover:bg-lightBg4/70 flex flex-col space-y-1 rounded-lg p-3 text-sm text-textSecondary transition-all duration-300 dark:bg-darkBg3/50 dark:text-textTert dark:hover:bg-darkBg4/50"
+                      className="flex flex-col space-y-1 bg-lightBg4 p-3 text-sm text-textSecondary transition-all duration-300 hover:bg-lightBg4 dark:bg-darkBg3 dark:text-textTert dark:hover:bg-darkBg4"
                     >
                       <span>{truncateMiddle(file.name, 15)}</span>
                       <span>{truncateMiddle(file.type, 15)}</span>
@@ -186,15 +190,15 @@ export default function Upload() {
                 multiple={true}
                 name="design"
                 types={fileTypes}
-                className="bg-lightBg3/30 hover:border-lightBg4/30 hover:bg-lightBg4/30 border-lightBg4/30 flex min-h-[50px] w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed p-4 text-center text-textSecondary transition-all duration-300 hover:text-textPrimary dark:border-darkBg4/50 dark:bg-darkBg3/30 dark:text-textTert dark:hover:text-textSecondary"
+                className="flex min-h-[50px] w-full cursor-pointer items-center justify-center border-2 border-dashed border-lightBg4 bg-lightBg3 p-4 text-center text-textSecondary transition-all duration-300 hover:border-lightBg4 hover:bg-lightBg4 hover:text-textPrimary dark:border-darkBg4 dark:bg-darkBg3 dark:text-textTert dark:hover:text-textSecondary"
               />
             </div>
           </div>
         </div>
 
-        <div className="bg-lightBg3/30 flex-shrink-0 rounded-lg p-4 backdrop-blur-sm dark:bg-darkBg3/30">
+        <div className="flex-shrink-0 border-t border-lightBg4 bg-lightBg3 p-4 dark:border-darkBg4 dark:bg-darkBg3">
           <h3 className="mb-4 text-center text-base font-semibold text-textPrimary dark:text-textSecondary">Guideline Upload</h3>
-          <div className="w-full overflow-y-auto">
+          <div className="w-full overflow-hidden">
             {otherFiles !== null && otherFiles.length > 0 && (
               <ul className="mb-4 space-y-2">
                 {otherFiles
@@ -202,7 +206,7 @@ export default function Upload() {
                   .map((file, index) => (
                     <li
                       key={file.lastModified + index + 'other'}
-                      className="bg-lightBg4/50 hover:bg-lightBg4/70 flex flex-col space-y-1 rounded-lg p-3 text-sm text-textSecondary transition-all duration-300 dark:bg-darkBg3/50 dark:text-textTert dark:hover:bg-darkBg4/50"
+                      className="flex flex-col space-y-1 bg-lightBg4 p-3 text-sm text-textSecondary transition-all duration-300 hover:bg-lightBg4 dark:bg-darkBg3 dark:text-textTert dark:hover:bg-darkBg4"
                     >
                       <span>{truncateMiddle(file.name, 15)}</span>
                       <span>{truncateMiddle(file.type, 15)}</span>
@@ -220,7 +224,7 @@ export default function Upload() {
                   multiple={true}
                   name="guideline"
                   types={['PDF']}
-                  className="bg-lightBg3/30 hover:border-lightBg4/30 hover:bg-lightBg4/30 border-lightBg4/30 flex min-h-[50px] w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed p-4 text-center text-textSecondary transition-all duration-300 hover:text-textPrimary dark:border-darkBg4/50 dark:bg-darkBg3/30 dark:text-textTert dark:hover:text-textSecondary"
+                  className="flex min-h-[50px] w-full cursor-pointer items-center justify-center border-2 border-dashed border-lightBg4 bg-lightBg3 p-4 text-center text-textSecondary transition-all duration-300 hover:border-lightBg4 hover:bg-lightBg4 hover:text-textPrimary dark:border-darkBg4 dark:bg-darkBg3 dark:text-textTert dark:hover:text-textSecondary"
                 />
               </div>
             </div>

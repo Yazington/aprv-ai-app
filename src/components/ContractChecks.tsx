@@ -108,17 +108,17 @@ export default () => {
   };
   // Render component
   return (
-    <div className="flex h-full w-full flex-col p-4">
-      <div className="flex h-full flex-col space-y-4">
-        <div className="bg-lightBg2/90 mb-2 flex items-center justify-between rounded-lg p-3 backdrop-blur-sm dark:bg-darkBg2/80">
+    <div className="flex h-full w-full flex-col">
+      <div className="flex h-full flex-col">
+        <div className="flex items-center justify-between border-b border-lightBg3 bg-lightBg2 p-4 dark:border-darkBg3 dark:bg-darkBg2">
           <h2 className="text-base font-semibold text-textPrimary dark:text-textSecondary">Guidelines</h2>
         </div>
-        <div className="scrollbar-thin flex-1 overflow-y-auto rounded-lg bg-darkBg3/30 p-2 backdrop-blur-sm">
+        <div className="scrollbar-thin flex-1 overflow-y-auto bg-lightBg3 p-2 [--scrollbar-left:0] dark:bg-darkBg3">
           {reviews
             .sort((a, b) => a.page_number - b.page_number) // Sort by page_number
             .map(review => (
               <div
-                className="bg-lightBg3/50 hover:bg-lightBg4/50 flex items-center justify-between rounded-md p-2 text-xs text-textSecondary transition-all duration-300 dark:bg-darkBg3/50 dark:text-textTert dark:hover:bg-darkBg4/50"
+                className="flex items-center justify-between rounded-md bg-lightBg3 p-2 text-xs text-textSecondary transition-all duration-300 hover:bg-lightBg4 dark:bg-darkBg3 dark:text-textTert dark:hover:bg-darkBg4"
                 key={review.page_number}
               >
                 <span className="font-mono text-sm text-textTert dark:text-textSecondary">Page {review.page_number}</span>
@@ -172,13 +172,13 @@ export default () => {
               </div>
             ))}
         </div>
-        <div className="flex flex-shrink-0 items-center justify-center py-2">
+        <div className="flex flex-shrink-0 items-center justify-center overflow-hidden p-2">
           {!processingHasStarted && (
             <button
               onClick={processDesign}
-              className="bg-lightBg4/90 group relative mt-2 w-full overflow-hidden rounded-lg p-[1px] transition-all duration-300 hover:scale-[1.02] dark:bg-darkBg4/90"
+              className="group relative mt-2 w-full overflow-hidden rounded-lg bg-lightBg4 p-[1px] transition-all duration-300 hover:scale-[1.02] dark:bg-darkBg4"
             >
-              <div className="bg-lightBg2/90 relative rounded-lg px-4 py-2 transition-all duration-300 group-hover:bg-opacity-90 dark:bg-darkBg2/90">
+              <div className="relative rounded-lg bg-lightBg2 px-4 py-2 transition-all duration-300 group-hover:bg-lightBg3 dark:bg-darkBg2 dark:group-hover:bg-darkBg3">
                 <span className="relative z-10 flex items-center justify-center text-xs font-medium text-textPrimary dark:text-textSecondary">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

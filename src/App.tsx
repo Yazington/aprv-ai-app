@@ -105,7 +105,7 @@ function App() {
               </filter>
             </defs>
           </svg>
-          <div className="login-box border-lightBg1/20 bg-lightBg1/10 relative z-10 flex flex-col items-center justify-center gap-6 rounded-2xl border p-8 shadow-lg backdrop-blur-lg dark:border-darkBg4 dark:bg-darkBg1/10">
+          <div className="login-box relative z-10 flex flex-col items-center justify-center gap-6 rounded-2xl border border-lightBg1/20 bg-lightBg1/10 p-8 shadow-lg backdrop-blur-lg dark:border-darkBg4 dark:bg-darkBg1/10">
             <h1 className="text-3xl font-bold text-textPrimary">Welcome to APRV AI</h1>
             <p className="text-center text-textSecondary">Sign in to continue to your workspace</p>
             <GoogleSignInButton onSuccess={handleSuccess} />
@@ -113,18 +113,17 @@ function App() {
         </div>
       )}
       {isLoggedIn && (
-        <div className="from-lightBg1 to-lightBg2 flex h-screen w-full flex-col bg-gradient-to-br text-textPrimary subpixel-antialiased dark:from-darkBg1 dark:to-darkBg2 md:flex-row">
-          <DarkModeToggle />
-          <div className="bg-lightBg3/50 fixed bottom-2 left-2 top-2 w-[240px] rounded-lg backdrop-blur-sm transition-all duration-300 hover:shadow-all-around dark:bg-darkBg3/50">
-            <Upload />
-          </div>
-          <div className="mx-auto w-[calc(100%-480px)] px-2">
-            <div className="bg-lightBg3/50 h-full rounded-lg backdrop-blur-sm transition-all duration-300 hover:shadow-all-around dark:bg-darkBg3/50">
+        <div className="flex h-screen w-full flex-col bg-gradient-to-br from-lightBg1 to-lightBg2 text-textPrimary subpixel-antialiased dark:from-darkBg1 dark:to-darkBg2">
+          <div className="flex h-full">
+            <div className="h-full w-[240px] bg-lightBg2 dark:bg-darkBg2">
+              <Upload />
+            </div>
+            <div className="flex-1 bg-lightBg2 dark:bg-darkBg2">
               <Chat />
             </div>
-          </div>
-          <div className="bg-lightBg3/50 fixed bottom-2 right-2 top-2 w-[240px] rounded-lg backdrop-blur-sm transition-all duration-300 hover:shadow-all-around dark:bg-darkBg3/50">
-            <ContractChecks />
+            <div className="h-full w-[240px] bg-lightBg2 dark:bg-darkBg2">
+              <ContractChecks />
+            </div>
           </div>
         </div>
       )}
