@@ -11,7 +11,7 @@
 /* Custom code block styling */
 @layer components {
   .shiki {
-    @apply overflow-x-auto rounded-md bg-gray-900 p-4 text-gray-100;
+    @apply bg-lightBg3/50 overflow-x-auto rounded-md p-4 text-textPrimary backdrop-blur-sm dark:bg-darkBg2/80;
   }
 
   .shiki pre {
@@ -19,7 +19,7 @@
   }
 
   .shiki code {
-    @apply text-gray-100;
+    @apply text-textPrimary;
   }
 }
 
@@ -31,10 +31,15 @@
 } */
 
 :root {
-  --color-dark-bg1: #000000;
-  --color-dark-bg2: #080808;
-  --color-dark-bg3: #131313;
-  --color-dark-bg4: #232323;
+  --color-text-primary: #18181b; /* Zinc 900 - Strong contrast */
+  --color-text-secondary: #3f3f46; /* Zinc 700 - Medium contrast */
+  --color-text-tertiary: #71717a; /* Zinc 500 - Subtle text */
+}
+
+.dark {
+  --color-text-primary: #fafafa; /* Zinc 50 - Bright, clear */
+  --color-text-secondary: #e4e4e7; /* Zinc 200 - Soft contrast */
+  --color-text-tertiary: #a1a1aa; /* Zinc 400 - Subtle but readable */
 }
 
 /* Webkit-based browsers */
@@ -43,20 +48,121 @@
 }
 
 ::-webkit-scrollbar-track {
-  background-color: var(--color-dark-bg2); /* Use Tailwind darkBg2 */
+  @apply bg-lightBg2 dark:bg-darkBg2;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--color-dark-bg4); /* Use Tailwind darkBg4 */
-  border-radius: 6px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-dark-bg3); /* Slightly lighter on hover */
+  @apply bg-lightBg4 hover:bg-lightBg3 rounded-md dark:bg-darkBg4 dark:hover:bg-darkBg3;
 }
 
 /* For Firefox */
 .scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-dark-bg4) var(--color-dark-bg2);
+  @apply [scrollbar-color:theme(colors.lightBg4)_theme(colors.lightBg2)] dark:[scrollbar-color:theme(colors.darkBg4)_theme(colors.darkBg2)];
+}
+
+/* Network Background Animation */
+/* Login Page */
+.login-container {
+  @apply relative min-h-screen w-full overflow-hidden;
+  background: theme(colors.darkBg1);
+}
+
+.login-box {
+  @apply absolute left-1/2 top-1/2 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 transform rounded-xl bg-darkBg2/10 p-8 backdrop-blur-lg;
+  box-shadow: 0 8px 32px 0 theme(colors.darkBg3/40);
+  border: 1px solid theme(colors.darkBg2/20);
+}
+
+/* Network Background Animation */
+.network-background {
+  @apply absolute inset-0 opacity-30;
+  background:
+    linear-gradient(to right, transparent 49%, theme(colors.darkBg2) 50%, transparent 51%) 0 0 / 3em 3em,
+    linear-gradient(transparent 49%, theme(colors.darkBg2) 50%, transparent 51%) 0 0 / 3em 3em;
+  animation: moveBackground 20s linear infinite;
+}
+
+.line {
+  @apply absolute h-[0.5px];
+  transform-origin: 0 0;
+  background: transparent;
+  transition: all 0.15s ease;
+  pointer-events: none;
+}
+
+.line.active {
+  @apply h-[2px];
+  background: theme(colors.darkBg4);
+  box-shadow: 0 0 12px theme(colors.darkBg4/50);
+  z-index: 2;
+}
+
+.node {
+  @apply absolute h-2 w-2 rounded-full;
+  background: transparent;
+  transition: all 0.1s ease;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.node.active {
+  background: theme(colors.darkBg3);
+  box-shadow: 0 0 20px theme(colors.darkBg3/50);
+  transform: translate(-50%, -50%) scale(2);
+}
+
+@keyframes moveBackground {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 3em 3em;
+  }
+}
+
+/* Floating particles */
+.particles {
+  @apply pointer-events-none absolute inset-0;
+}
+
+.particle {
+  @apply absolute h-2 w-2 rounded-full bg-darkBg2 opacity-30;
+  animation: float 6s infinite;
+}
+
+.particle:nth-child(1) {
+  left: 10%;
+  top: 20%;
+  animation-delay: 0s;
+}
+.particle:nth-child(2) {
+  left: 30%;
+  top: 40%;
+  animation-delay: 2s;
+}
+.particle:nth-child(3) {
+  left: 50%;
+  top: 60%;
+  animation-delay: 4s;
+}
+.particle:nth-child(4) {
+  left: 70%;
+  top: 80%;
+  animation-delay: 6s;
+}
+.particle:nth-child(5) {
+  left: 90%;
+  top: 30%;
+  animation-delay: 8s;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-20px) translateX(10px);
+  }
 }

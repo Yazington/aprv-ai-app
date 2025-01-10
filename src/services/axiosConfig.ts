@@ -2,14 +2,6 @@ import axios, { AxiosError } from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import { useAuthStore } from '../stores/authStore';
 
-// export const getTokenExpiration = (token: string) => {
-//   const decoded = jwtDecode(token);
-//   if (!decoded || !decoded.exp) {
-//     return null;
-//   }
-//   return decoded.exp * 1000;
-// };
-
 export const getUserId = (token: string) => {
   const decoded = jwtDecode(token);
   if (!decoded || !decoded.exp) {

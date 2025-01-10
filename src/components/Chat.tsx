@@ -162,7 +162,6 @@ export const Chat = () => {
     const generationSource = new EventSource(
       `${apiClient.defaults.baseURL}/chat/generate/${message.id}?access_token=${accessToken}&user_id=${userId}`
     );
-
     generateSourceRef.current = generationSource;
 
     setupEventHandlers(generationSource);
@@ -187,28 +186,12 @@ export const Chat = () => {
     if (content.includes('[TOOL_USAGE_APRV_AI]:')) {
       const toolName = content.replace('[TOOL_USAGE_APRV_AI]:', '').trim();
       setCurrentToolInUse(toolName);
-      // setActiveTools(prev => ({ ...prev, [toolName]: 'processing' }));
-      // console.log(`Processing started: ${toolName}`);
-      // Optionally add a placeholder or message to the buffer
-      // addToBuffer(`Processing: ${toolName}...`);
-      // return;
     }
 
     // Check for tool done
     if (content.includes('[TOOL_USAGE_APRV_AI_DONE]:')) {
-      // const toolName = content.replace('[TOOL_USAGE_APRV_AI_DONE]:', '').trim();
       setCurrentToolInUse(undefined);
-      // setActiveTools(prev => {
-      //   const newStates = { ...prev };
-      //   delete newStates[toolName];
-      //   return newStates;
-      // });
-      // console.log(`Processing finished: ${toolName}`);
-      // // Optionally update the buffer to indicate completion
-      // addToBuffer(`Completed: ${toolName}`);
-      // return;
     }
-    // content = content.replace('[TOOL_USAGE_APRV_AI]:', '');
 
     // For regular content, add to buffer
     if (data) {
@@ -238,22 +221,23 @@ export const Chat = () => {
   };
 
   return (
-    <div className="flex min-w-0 basis-[80%]">
-      <div className="flex w-full min-w-0 flex-col">
-        {/* <ToolStatusComponent activeTools={activeTools} /> */}
-        <div className="flex w-full min-w-0 flex-grow overflow-y-hidden">
-          <div className="flex w-full min-w-0 flex-col overflow-y-auto overflow-x-hidden">
+    <div className="flex h-screen flex-col py-4">
+      <div className="relative flex h-full flex-col">
+        <div className="flex-1 overflow-hidden">
+          <div className="bg-lightBg3/30 h-full overflow-y-auto rounded-lg p-4 shadow-md backdrop-blur-sm dark:bg-darkBg2/50">
             <PreviousMessages
             // messages={previousMessages}
             // activeTools={activeTools}
             />
           </div>
         </div>
-        <InputSection
-          input={selectedConversationUserInput}
-          setInput={setSelectedConversationUserInput}
-          handleSend={handleSend}
-        />
+        <div className="sticky bottom-0 mt-auto px-4 pb-4">
+          <InputSection
+            input={selectedConversationUserInput}
+            setInput={setSelectedConversationUserInput}
+            handleSend={handleSend}
+          />
+        </div>
       </div>
     </div>
   );

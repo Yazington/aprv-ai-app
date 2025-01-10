@@ -1,0 +1,5 @@
+open plan.md and read its content and note down in your head the first first element thats not marked as done
+Using what you marked down, look at the README.MD content.
+After that gather all files required to help you implement the first change
+Let user know when done
+

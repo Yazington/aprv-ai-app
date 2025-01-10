@@ -101,27 +101,27 @@ export default () => {
 
   const IconStyles = {
     base: 'rounded-full p-2 transition duration-300 ease-in-out',
-    alert: 'bg-slate-500 hover:bg-slate-700 ',
-    success: 'bg-green-600 hover:bg-green-700 ',
-    error: 'bg-red-600 hover:bg-red-700 ',
+    alert: 'bg-lightBg4/70 hover:bg-lightBg4/90 dark:bg-darkBg4/70 dark:hover:bg-darkBg4/90',
+    success: 'bg-lightBg4/70 hover:bg-lightBg4/90 dark:bg-darkBg4/70 dark:hover:bg-darkBg4/90',
+    error: 'bg-lightBg4/70 hover:bg-lightBg4/90 dark:bg-darkBg4/70 dark:hover:bg-darkBg4/90',
     svgStyles: 'h-4 w-4',
   };
   // Render component
   return (
-    <div className="flex h-[100%] w-full min-w-0 basis-[10%] bg-darkBg4 shadow-lg shadow-black">
-      <div className="flex h-[100%] w-full basis-full flex-col items-center justify-center">
-        <div className="flex items-center justify-center border-b-2 border-gray-300 p-4">
-          <div className="text-md font-semibold tracking-tight text-textPrimary">Guidelines Checks</div>
+    <div className="flex h-full w-full flex-col p-4">
+      <div className="flex h-full flex-col space-y-4">
+        <div className="bg-lightBg2/90 mb-2 flex items-center justify-between rounded-lg p-3 backdrop-blur-sm dark:bg-darkBg2/80">
+          <h2 className="text-base font-semibold text-textPrimary dark:text-textSecondary">Guidelines</h2>
         </div>
-        <div className="w-full basis-[88%] items-center justify-center divide-y overflow-y-auto">
+        <div className="scrollbar-thin flex-1 overflow-y-auto rounded-lg bg-darkBg3/30 p-2 backdrop-blur-sm">
           {reviews
             .sort((a, b) => a.page_number - b.page_number) // Sort by page_number
             .map(review => (
               <div
-                className="flex min-h-[24px] w-full flex-row items-center justify-evenly p-2 text-xs"
+                className="bg-lightBg3/50 hover:bg-lightBg4/50 flex items-center justify-between rounded-md p-2 text-xs text-textSecondary transition-all duration-300 dark:bg-darkBg3/50 dark:text-textTert dark:hover:bg-darkBg4/50"
                 key={review.page_number}
               >
-                <span className="font-mono">Page {review.page_number}</span>
+                <span className="font-mono text-sm text-textTert dark:text-textSecondary">Page {review.page_number}</span>
                 <Tippy
                   content={<ReactMarkdown>{review.review_description}</ReactMarkdown>}
                   arrow={true}
@@ -172,20 +172,38 @@ export default () => {
               </div>
             ))}
         </div>
-        <div className="flex flex-[10%] items-center justify-center">
+        <div className="flex flex-shrink-0 items-center justify-center py-2">
           {!processingHasStarted && (
             <button
-              className="flex max-h-10 items-center justify-center rounded-full bg-buttonBlack px-4 py-2 text-sm font-bold text-textSecondary transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-slate-900"
               onClick={processDesign}
+              className="bg-lightBg4/90 group relative mt-2 w-full overflow-hidden rounded-lg p-[1px] transition-all duration-300 hover:scale-[1.02] dark:bg-darkBg4/90"
             >
-              Compliance Check
+              <div className="bg-lightBg2/90 relative rounded-lg px-4 py-2 transition-all duration-300 group-hover:bg-opacity-90 dark:bg-darkBg2/90">
+                <span className="relative z-10 flex items-center justify-center text-xs font-medium text-textPrimary dark:text-textSecondary">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="mr-2 h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                    />
+                  </svg>
+                  Run Compliance Check
+                </span>
+              </div>
             </button>
           )}
           {processingHasStarted && isProcessing && (
             <div role="status">
               <svg
                 aria-hidden="true"
-                className="h-8 w-8 animate-spin fill-blue-600 text-gray-200 dark:text-gray-600"
+                className="h-8 w-8 animate-spin text-textPrimary dark:text-textSecondary"
                 viewBox="0 0 100 101"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -208,7 +226,7 @@ export default () => {
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="currentColor"
-                className="h-8 w-8 transform text-green-500 transition-transform hover:rotate-12 hover:scale-110"
+                className="h-8 w-8 transform text-textPrimary transition-all duration-300 hover:scale-110 hover:text-textSecondary dark:text-textSecondary dark:hover:text-textTert"
               >
                 <path
                   fillRule="evenodd"

@@ -1,11 +1,14 @@
-import { CredentialResponse, GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
+import { CredentialResponse, GoogleOAuthProvider } from '@react-oauth/google';
 import { useEffect } from 'react';
+import { DarkModeToggle } from './components/DarkModeToggle';
 import { Chat } from './components/Chat';
 import ContractChecks from './components/ContractChecks';
 import Upload from './components/Upload';
 import './index.css';
 import { apiClient } from './services/axiosConfig';
 import { useAuthStore } from './stores/authStore';
+import { NetworkLines } from './components/NetworkLines';
+import GoogleSignInButton from './components/GoogleSignInButton';
 
 function App() {
   const { access_token, exp, isLoggedIn, setAccessToken, setExp, setUserId, isExpired, logout, setIsLoggedIn } = useAuthStore();
@@ -59,18 +62,70 @@ function App() {
   return (
     <GoogleOAuthProvider clientId="460411803550-aq1oq8hcss0t184ti7ui3odaabb8ntbu.apps.googleusercontent.com">
       {!isLoggedIn && (
-        <div className="flex h-screen w-screen flex-1 flex-col items-center justify-center">
-          <GoogleLogin
-            onSuccess={handleSuccess}
-            onError={() => {}}
-          />
+        <div className="login-container">
+          <div className="network-background"></div>
+          <NetworkLines />
+          <div className="network-nodes z-0">
+            {Array.from({ length: 80 }).map((_, i) => {
+              // Create a grid-like distribution with some randomness
+              const gridSize = Math.ceil(Math.sqrt(80));
+              const row = Math.floor(i / gridSize);
+              const col = i % gridSize;
+
+              // Add randomness to grid positions
+              const left = (col / gridSize) * 100 + (Math.random() * 10 - 5);
+              const top = (row / gridSize) * 100 + (Math.random() * 10 - 5);
+
+              return (
+                <div
+                  key={i}
+                  className="node"
+                  style={{
+                    left: `${Math.max(2, Math.min(98, left))}%`,
+                    top: `${Math.max(2, Math.min(98, top))}%`,
+                  }}
+                />
+              );
+            })}
+          </div>
+          <svg
+            width="0"
+            height="0"
+          >
+            <defs>
+              <filter id="glow">
+                <feGaussianBlur
+                  stdDeviation="3"
+                  result="coloredBlur"
+                />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+          </svg>
+          <div className="login-box border-lightBg1/20 bg-lightBg1/10 relative z-10 flex flex-col items-center justify-center gap-6 rounded-2xl border p-8 shadow-lg backdrop-blur-lg dark:border-darkBg4 dark:bg-darkBg1/10">
+            <h1 className="text-3xl font-bold text-textPrimary">Welcome to APRV AI</h1>
+            <p className="text-center text-textSecondary">Sign in to continue to your workspace</p>
+            <GoogleSignInButton onSuccess={handleSuccess} />
+          </div>
         </div>
       )}
       {isLoggedIn && (
-        <div className="flex h-screen w-screen basis-full flex-row content-center justify-center text-textPrimary subpixel-antialiased dark:bg-darkBg1">
-          <Upload />
-          <Chat />
-          <ContractChecks />
+        <div className="from-lightBg1 to-lightBg2 flex h-screen w-full flex-col bg-gradient-to-br text-textPrimary subpixel-antialiased dark:from-darkBg1 dark:to-darkBg2 md:flex-row">
+          <DarkModeToggle />
+          <div className="bg-lightBg3/50 fixed bottom-2 left-2 top-2 w-[240px] rounded-lg backdrop-blur-sm transition-all duration-300 hover:shadow-all-around dark:bg-darkBg3/50">
+            <Upload />
+          </div>
+          <div className="mx-auto w-[calc(100%-480px)] px-2">
+            <div className="bg-lightBg3/50 h-full rounded-lg backdrop-blur-sm transition-all duration-300 hover:shadow-all-around dark:bg-darkBg3/50">
+              <Chat />
+            </div>
+          </div>
+          <div className="bg-lightBg3/50 fixed bottom-2 right-2 top-2 w-[240px] rounded-lg backdrop-blur-sm transition-all duration-300 hover:shadow-all-around dark:bg-darkBg3/50">
+            <ContractChecks />
+          </div>
         </div>
       )}
     </GoogleOAuthProvider>

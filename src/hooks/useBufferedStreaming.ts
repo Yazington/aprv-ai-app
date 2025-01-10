@@ -47,7 +47,7 @@ export const useBufferedStreaming = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       flushBuffer();
-    }, 10);
+    }, 20);
 
     return () => clearInterval(interval); // Clean up on component unmount
   }, []); // No dependencies

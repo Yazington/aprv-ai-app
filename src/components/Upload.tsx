@@ -9,7 +9,13 @@ import { IoCreateOutline } from 'react-icons/io5';
 
 const fileTypes = ['PNG', 'JPG', 'JPEG', 'PDF'];
 
-export default () => {
+/**
+ * Upload component for handling file uploads and managing conversations.
+ *
+ * This component allows users to upload design files and guideline files,
+ * manage conversations, and display uploaded files.
+ */
+export default function Upload() {
   const { userId, logout } = useAuthStore(useShallow(state => ({ userId: state.user_id, logout: state.logout })));
   const {
     allUserConversations,
@@ -108,11 +114,11 @@ export default () => {
   };
 
   return (
-    <div className="flex min-w-0 basis-[10%] bg-darkBg4">
-      <div className="flex h-screen w-full min-w-0 basis-[100%] flex-col content-center justify-center">
-        <div className="flex max-h-[100px] w-full basis-1/12 flex-row items-center justify-evenly">
+    <div className="flex h-full w-full flex-col p-4">
+      <div className="flex h-full flex-col space-y-4">
+        <div className="bg-lightBg2/90 flex items-center justify-between rounded-lg p-4 backdrop-blur-sm dark:bg-darkBg2/80">
           <button
-            className="rounded-full bg-darkBg4 p-2 text-textSecondary shadow-all-around transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:text-gray-200 hover:shadow-lg"
+            className="bg-lightBg3/50 hover:bg-lightBg4/50 rounded-xl p-3 text-textSecondary backdrop-blur-sm transition-all duration-300 hover:text-textPrimary hover:shadow-lg dark:bg-darkBg3/50 dark:text-textTert dark:hover:bg-darkBg4/50 dark:hover:text-textSecondary"
             onClick={createNewConversation}
             aria-label="Create New Conversation"
           >
@@ -121,26 +127,26 @@ export default () => {
 
           <div className="flex min-w-[100px] basis-1/12 items-center justify-center">
             <button
-              className="rounded-full bg-darkBg4 px-4 py-2 text-xs text-textSecondary shadow-all-around transition delay-150 ease-in-out hover:-translate-y-1 hover:scale-110 hover:text-gray-200 hover:shadow-lg" // Added 'text-sm' for smaller font
+              className="bg-lightBg4/20 hover:bg-lightBg4/30 rounded-xl px-4 py-2 text-sm font-medium text-textSecondary backdrop-blur-sm transition-all duration-300 hover:text-textPrimary dark:bg-darkBg4/20 dark:hover:bg-darkBg4/30"
               onClick={logout}
             >
               Sign Out
             </button>
           </div>
         </div>
-        <div className="flex w-full min-w-0 basis-7/12 overflow-y-auto overflow-x-hidden">
+        <div className="scrollbar-thin bg-lightBg3/30 flex-1 overflow-y-auto rounded-lg p-2 backdrop-blur-sm dark:bg-darkBg3/30">
           {allUserConversations.length > 0 && (
-            <ul className="w-full list-inside list-disc pl-0">
+            <ul className="space-y-2">
               {allUserConversations.map(conversation => (
                 <li
                   key={conversation.id}
                   className="flex list-none flex-col"
                 >
                   <button
-                    className={`w-full overflow-hidden truncate whitespace-nowrap p-2 text-xs font-medium transition ${
+                    className={`w-full overflow-hidden truncate rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
                       conversation.id === selectedConversationId
-                        ? 'text-highlightText bg-sky-700 text-textPrimary' // Add your styles for the selected conversation here
-                        : 'bg-buttonBlack text-textTert hover:bg-slate-800'
+                        ? 'bg-lightBg4/20 text-textPrimary shadow-md dark:bg-darkBg4/20 dark:text-textSecondary'
+                        : 'bg-lightBg3/50 hover:bg-lightBg4/50 text-textSecondary hover:text-textPrimary dark:bg-darkBg3/50 dark:text-textTert dark:hover:bg-darkBg4/50 dark:hover:text-textSecondary'
                     }`}
                     onClick={() => loadConversation(conversation.id)}
                   >
@@ -152,18 +158,18 @@ export default () => {
           )}
         </div>
 
-        <div className="flex min-w-0 basis-2/12 flex-col truncate">
-          <div className="m-4 min-w-0 truncate text-pretty text-center text-sm">Design Upload</div>
+        <div className="bg-lightBg3/30 flex-shrink-0 rounded-lg p-4 backdrop-blur-sm dark:bg-darkBg3/30">
+          <h3 className="mb-4 text-center text-base font-semibold text-textPrimary dark:text-textSecondary">Design Upload</h3>
 
           <div className="w-full overflow-y-auto">
             {designFiles && designFiles.length > 0 && (
-              <ul className="w-full list-inside list-disc pl-0">
+              <ul className="mb-4 space-y-2">
                 {designFiles
                   .filter(file => file !== null) // Filter out null values
                   .map((file, index) => (
                     <li
                       key={(file.lastModified || '') + '' + index + 'other'}
-                      className="flex list-none flex-col border-[0.5px] text-sm text-textTert hover:bg-sky-700"
+                      className="bg-lightBg4/50 hover:bg-lightBg4/70 flex flex-col space-y-1 rounded-lg p-3 text-sm text-textSecondary transition-all duration-300 dark:bg-darkBg3/50 dark:text-textTert dark:hover:bg-darkBg4/50"
                     >
                       <span>{truncateMiddle(file.name, 15)}</span>
                       <span>{truncateMiddle(file.type, 15)}</span>
@@ -180,31 +186,29 @@ export default () => {
                 multiple={true}
                 name="design"
                 types={fileTypes}
-                className="flex min-h-[50px] w-full items-center justify-center border-2 border-dashed bg-darkBg2 text-center"
+                className="bg-lightBg3/30 hover:border-lightBg4/30 hover:bg-lightBg4/30 border-lightBg4/30 flex min-h-[50px] w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed p-4 text-center text-textSecondary transition-all duration-300 hover:text-textPrimary dark:border-darkBg4/50 dark:bg-darkBg3/30 dark:text-textTert dark:hover:text-textSecondary"
               />
             </div>
           </div>
         </div>
 
-        <div className="flex w-full min-w-0 basis-2/12 flex-col items-center justify-center truncate">
-          <div className="m-4 w-full items-center justify-center text-pretty text-center text-sm">Guideline Upload</div>
+        <div className="bg-lightBg3/30 flex-shrink-0 rounded-lg p-4 backdrop-blur-sm dark:bg-darkBg3/30">
+          <h3 className="mb-4 text-center text-base font-semibold text-textPrimary dark:text-textSecondary">Guideline Upload</h3>
           <div className="w-full overflow-y-auto">
             {otherFiles !== null && otherFiles.length > 0 && (
-              <ul className="w-full list-inside list-disc pl-0">
-                {otherFiles &&
-                  otherFiles.length > 0 &&
-                  otherFiles
-                    .filter(file => file !== null) // Filter out null values
-                    .map((file, index) => (
-                      <li
-                        key={file.lastModified + index + 'other'}
-                        className="flex list-none flex-col border-[0.5px] text-sm text-textTert hover:bg-sky-700"
-                      >
-                        <span>{truncateMiddle(file.name, 15)}</span>
-                        <span>{truncateMiddle(file.type, 15)}</span>
-                        <span>{file.size / 1000000} MB</span>
-                      </li>
-                    ))}
+              <ul className="mb-4 space-y-2">
+                {otherFiles
+                  .filter(file => file !== null)
+                  .map((file, index) => (
+                    <li
+                      key={file.lastModified + index + 'other'}
+                      className="bg-lightBg4/50 hover:bg-lightBg4/70 flex flex-col space-y-1 rounded-lg p-3 text-sm text-textSecondary transition-all duration-300 dark:bg-darkBg3/50 dark:text-textTert dark:hover:bg-darkBg4/50"
+                    >
+                      <span>{truncateMiddle(file.name, 15)}</span>
+                      <span>{truncateMiddle(file.type, 15)}</span>
+                      <span>{file.size / 1000000} MB</span>
+                    </li>
+                  ))}
               </ul>
             )}
           </div>
@@ -216,7 +220,7 @@ export default () => {
                   multiple={true}
                   name="guideline"
                   types={['PDF']}
-                  className="flex min-h-[50px] w-full items-center justify-center border-2 border-dashed bg-darkBg2 text-center"
+                  className="bg-lightBg3/30 hover:border-lightBg4/30 hover:bg-lightBg4/30 border-lightBg4/30 flex min-h-[50px] w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed p-4 text-center text-textSecondary transition-all duration-300 hover:text-textPrimary dark:border-darkBg4/50 dark:bg-darkBg3/30 dark:text-textTert dark:hover:text-textSecondary"
                 />
               </div>
             </div>
@@ -228,7 +232,7 @@ export default () => {
             >
               <svg
                 aria-hidden="true"
-                className="h-8 w-8 animate-spin fill-blue-600 text-gray-200 dark:text-gray-600"
+                className="h-10 w-10 animate-spin text-textPrimary dark:text-textSecondary"
                 viewBox="0 0 100 101"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -249,7 +253,7 @@ export default () => {
       </div>
     </div>
   );
-};
+}
 function truncateMiddle(text: string, maxLength: number): string {
   if (!text || text.length <= maxLength) return text;
   const endLength = Math.floor(maxLength / 2);

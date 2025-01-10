@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: [
     './index.html',
     './src/**/*.{js,ts,jsx,tsx}',
@@ -16,19 +16,28 @@ module.exports = {
         paji: ['"Baloo Paaji 2"'],
       },
       colors: {
-        // Custom black and white shades
-        darkBg1: '#000000',  // Very dark background (almost black)
-        darkBg2: '#080808',  // Slightly lighter, but still very dark
-        darkBg3: '#131313',  // Another close-to-black background color
-        darkBg4: '#232323',  // Another close-to-black background color
+        // Dark mode - 2025 sophisticated theme
+        darkBg1: '#0f172a',  // Deep navy - Main background
+        darkBg2: '#1e293b',  // Rich slate - Surface
+        darkBg3: '#334155',  // Mocha mousse - UI elements
+        darkBg4: '#475569',  // Deep slate - Borders
 
-        // Updated text colors spread out in brightness
-        textPrimary: '#FFFFFF',  // Pure White for main text
-        textSecondary: '#E5E5E5',  // Soft White for secondary text
-        textTert: '#B3B3B3',  // Light Gray for tertiary/less important text
+        // Light mode - 2025 natural, warm theme
+        lightBg1: '#faf5f0',  // Warm white - Main background
+        lightBg2: '#f3f4f6',  // Soft gray - Surface
+        lightBg3: '#e5e7eb',  // Natural gray - UI elements
+        lightBg4: '#d1d5db',  // Muted gray - Borders
 
-        // Button color
-        buttonBlack: '#000000',  // Completely black for buttons
+        // Accent colors - 2025 trends
+        accent1: '#818cf8',    // Modern indigo - Primary
+        accent2: '#f472b6',    // Dusty rose - Secondary
+        accent3: '#fbbf24',    // Warm yellow - Tertiary (True Joy inspired)
+        accent4: '#34d399',    // Fresh sage - Success
+
+        // Text colors - Refined for 2025
+        textPrimary: 'var(--color-text-primary)',
+        textSecondary: 'var(--color-text-secondary)',
+        textTert: 'var(--color-text-tertiary)',
       },
       boxShadow: {
         'all-around': `inset 0 0 0.5px 1px hsla(0, 0%,  100%, 0.3), 
@@ -39,8 +48,22 @@ module.exports = {
           0 0.9px 1.5px hsla(0, 0%, 0%, 0.045),
           0 3.5px 6px hsla(0, 0%, 0%, 0.09) ;`,
       },
-
+      keyframes: {
+        tilt: {
+          '0%, 50%, 100%': {
+            transform: 'rotate(0deg)',
+          },
+          '25%': {
+            transform: 'rotate(0.5deg)',
+          },
+          '75%': {
+            transform: 'rotate(-0.5deg)',
+          },
+        },
+      },
+      animation: {
+        tilt: 'tilt 10s infinite linear',
+      },
     },
   },
-  plugins: [],
 }

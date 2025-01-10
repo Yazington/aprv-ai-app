@@ -2,6 +2,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+/**
+ * Popover component that displays content in a floating box.
+ *
+ * @param {React.ReactNode} children - The content to be wrapped by the popover.
+ * @param {React.ReactNode} content - The content to be displayed in the popover.
+ * @param {string} [trigger='click'] - The event that triggers the popover ('click' or 'hover').
+ */
 function Popover({ children, content, trigger = 'click' }: any) {
   const [show, setShow] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
