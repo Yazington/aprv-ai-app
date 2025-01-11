@@ -10,15 +10,7 @@ import { NetworkLines } from './components/NetworkLines';
 import GoogleSignInButton from './components/GoogleSignInButton';
 
 function App() {
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const { access_token, exp, isLoggedIn, setAccessToken, setExp, setUserId, isExpired, logout, setIsLoggedIn } = useAuthStore();
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentWordIndex((prev: number) => (prev + 1) % 3);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, []);
 
   // Add 'dark' class to the root to apply dark mode by default
   useEffect(() => {
