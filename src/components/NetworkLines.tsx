@@ -67,43 +67,41 @@ export const NetworkLines = () => {
     });
 
     // Animate path
-    path.forEach((_, index) => {
-      if (index < path.length - 1) {
-        setTimeout(() => {
-          // Activate all nodes and lines in the path simultaneously
-          path.forEach(pathNodeId => {
-            nodes[pathNodeId].element.classList.add('active');
-          });
+    const animatePath = (path: number[], index: number) => {
+      if (index >= path.length - 1) return;
 
-          // Activate all lines in the path
-          for (let i = 0; i < path.length - 1; i++) {
-            const currentLine = lines.find(
-              line => (line.from === path[i] && line.to === path[i + 1]) || (line.from === path[i + 1] && line.to === path[i])
-            );
-            if (currentLine) {
-              currentLine.element.classList.add('active');
-              currentLine.isActive = true;
-            }
-          }
-        }, 0);
+      const currentLine = lines.find(
+        line => (line.from === path[index] && line.to === path[index + 1]) || (line.from === path[index + 1] && line.to === path[index])
+      );
 
-        // Deactivate everything after 100ms
-        setTimeout(() => {
-          path.forEach(pathNodeId => {
-            nodes[pathNodeId].element.classList.remove('active');
-          });
-          lines.forEach(line => {
-            line.element.classList.remove('active');
-            line.isActive = false;
-          });
-        }, 300);
+      if (currentLine) {
+        currentLine.element.classList.add('active');
+        currentLine.isActive = true;
       }
-    });
 
-    // Start new path after a short delay
-    setTimeout(() => {
-      startNewPath();
-    }, 800);
+      setTimeout(() => {
+        animatePath(path, index + 1);
+      }, 200); // Adjust the timing as needed
+    };
+
+    animatePath(path, 0);
+
+    // Deactivate path after animation completes
+    setTimeout(
+      () => {
+        path.forEach(pathNodeId => {
+          nodes[pathNodeId].element.classList.remove('active');
+        });
+        lines.forEach(line => {
+          line.element.classList.remove('active');
+          line.isActive = false;
+        });
+
+        // Start new path after a short delay
+        setTimeout(startNewPath, 800);
+      },
+      (path.length - 1) * 200
+    ); // Adjust the timing as needed
   };
 
   useEffect(() => {
@@ -161,7 +159,7 @@ export const NetworkLines = () => {
             line.style.width = `${distance}px`;
             line.style.left = `${node1.x}px`;
             line.style.top = `${node1.y}px`;
-            line.style.transform = `rotate(${(Math.atan2(newNodes[j].y - node1.y, newNodes[j].x - node1.x) * 180) / Math.PI}deg)`;
+            line.style.transform = `rotate(${Math.atan2(newNodes[j].y - node1.y, newNodes[j].x - node1.x) * (180 / Math.PI)}deg)`;
 
             linesContainer.appendChild(line);
             newLines.push({ from: i, to: j, isActive: false, element: line });
@@ -212,7 +210,7 @@ export const NetworkLines = () => {
         const node1 = updatedNodes[line.from];
         const node2 = updatedNodes[line.to];
         const length = Math.sqrt(Math.pow(node2.x - node1.x, 2) + Math.pow(node2.y - node1.y, 2));
-        const angle = (Math.atan2(node2.y - node1.y, node2.x - node1.x) * 180) / Math.PI;
+        const angle = Math.atan2(node2.y - node1.y, node2.x - node1.x) * (180 / Math.PI);
 
         line.element.style.width = `${length}px`;
         line.element.style.left = `${node1.x}px`;
