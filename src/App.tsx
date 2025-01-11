@@ -1,5 +1,5 @@
 import { CredentialResponse, GoogleOAuthProvider } from '@react-oauth/google';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Chat } from './components/Chat';
 import ContractChecks from './components/ContractChecks';
 import Upload from './components/Upload';
