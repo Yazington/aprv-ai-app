@@ -49,6 +49,10 @@ export default {
           0 3.5px 6px hsla(0, 0%, 0%, 0.09) ;`,
       },
       keyframes: {
+        moveBackground: {
+          '0%': { backgroundPosition: '0 0' },
+          '100%': { backgroundPosition: '3em 3em' }
+        },
         tilt: {
           '0%, 50%, 100%': {
             transform: 'rotate(0deg)',
@@ -63,6 +67,7 @@ export default {
       },
       animation: {
         tilt: 'tilt 10s infinite linear',
+        networkBg: 'moveBackground 20s linear infinite',
       },
     },
   },

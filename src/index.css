@@ -11,7 +11,7 @@
 /* Custom code block styling */
 @layer components {
   .shiki {
-    @apply bg-lightBg3/50 overflow-x-auto rounded-md p-4 text-textPrimary backdrop-blur-sm dark:bg-darkBg2/80;
+    @apply overflow-x-auto rounded-md bg-lightBg3/50 p-4 text-textPrimary backdrop-blur-sm dark:bg-darkBg2/80;
   }
 
   .shiki pre {
@@ -52,7 +52,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-lightBg4 hover:bg-lightBg3 rounded-md dark:bg-darkBg4 dark:hover:bg-darkBg3;
+  @apply rounded-md bg-lightBg4 hover:bg-lightBg3 dark:bg-darkBg4 dark:hover:bg-darkBg3;
 }
 
 /* For Firefox */
@@ -70,7 +70,7 @@
 
 .login-box {
   @apply absolute left-1/2 top-1/2 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 transform rounded-xl bg-darkBg2/10 p-8 backdrop-blur-lg;
-  box-shadow: 0 8px 32px 0 theme(colors.darkBg3/40);
+  box-shadow: 0 0px 1px 0 theme(colors.darkBg3/40);
   border: 1px solid theme(colors.darkBg2/20);
 }
 

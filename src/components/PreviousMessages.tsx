@@ -82,7 +82,7 @@ const PreviousMessages = () => {
         {regularMessages.map((message, index) => (
           <motion.div
             key={'previous-messages-' + index}
-            className={`grid basis-full grid-cols-[40px_1fr_40px] items-start gap-2 ${
+            className={`grid basis-full grid-cols-[40px_1fr_40px] items-center justify-center gap-10 ${
               message.is_from_human ? 'justify-end' : ''
             } ${message.isStreaming ? 'animate-fade-in' : ''}`}
             variants={messageVariants}
@@ -93,13 +93,11 @@ const PreviousMessages = () => {
           >
             <div className="flex h-10 w-10 items-start justify-center">
               {!message.is_from_human && (
-                <div className="group relative">
-                  <div className="absolute -inset-0.5 rounded-full bg-lightBg4 transition duration-1000 dark:bg-darkBg4"></div>
-                  <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-lightBg4 shadow ring-1 ring-black/10 dark:bg-darkBg4 dark:ring-white/10">
+                <div className="group relative items-center justify-center">
+                  <div className="">
                     <img
-                      src="/bot-avatar.png"
+                      src="/Icon White.png"
                       alt="AI Assistant"
-                      className="h-8 w-8 rounded-full object-cover"
                       onError={e => {
                         const target = e.target as HTMLImageElement;
                         target.src =
@@ -155,17 +153,16 @@ const PreviousMessages = () => {
             <div className="flex h-10 w-10 items-start justify-center">
               {message.is_from_human && (
                 <div className="group relative">
-                  <div className="absolute -inset-0.5 rounded-full bg-lightBg4 transition duration-1000 dark:bg-darkBg4"></div>
-                  <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-lightBg4 shadow ring-1 ring-black/10 dark:bg-darkBg4 dark:ring-white/10">
+                  <div className="">
                     <img
                       src="/user-avatar.png"
                       alt="User"
-                      className="h-8 w-8 rounded-full object-cover"
+                      className="h-10 w-10 rounded-full object-cover"
                       onError={e => {
                         const target = e.target as HTMLImageElement;
                         target.src =
-                          'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS11c2VyIj48cGF0aCBkPSJNMTkgMjFhNyA3IDAgMSAwLTE0IDAiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjEwIiByPSI0Ii8+PC9zdmc+';
-                        target.className = 'h-8 w-8 text-purple-400';
+                          'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXIiPjxwYXRoIGQ9Ik0xOSAyMWE3IDcgMCAxIDAtMTQgMCIvPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTAiIHI9IjQiLz48L3N2Zz4=';
+                        target.className = 'h-10 w-10 text-purple-400';
                       }}
                     />
                   </div>

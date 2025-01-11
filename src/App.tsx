@@ -1,5 +1,5 @@
 import { CredentialResponse, GoogleOAuthProvider } from '@react-oauth/google';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Chat } from './components/Chat';
 import ContractChecks from './components/ContractChecks';
 import Upload from './components/Upload';
@@ -10,7 +10,15 @@ import { NetworkLines } from './components/NetworkLines';
 import GoogleSignInButton from './components/GoogleSignInButton';
 
 function App() {
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const { access_token, exp, isLoggedIn, setAccessToken, setExp, setUserId, isExpired, logout, setIsLoggedIn } = useAuthStore();
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentWordIndex((prev: number) => (prev + 1) % 3);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Add 'dark' class to the root to apply dark mode by default
   useEffect(() => {
@@ -104,23 +112,29 @@ function App() {
               </filter>
             </defs>
           </svg>
-          <div className="login-box relative z-10 flex flex-col items-center justify-center gap-6 rounded-2xl border border-lightBg1/20 bg-lightBg1/10 p-8 shadow-lg backdrop-blur-lg dark:border-darkBg4 dark:bg-darkBg1/10">
-            <h1 className="text-3xl font-bold text-textPrimary">Welcome to APRV AI</h1>
-            <p className="text-center text-textSecondary">Sign in to continue to your workspace</p>
+          <div className="login-box shadow-xs relative z-10 flex flex-col items-center justify-center gap-6 rounded-2xl border border-lightBg1/20 bg-lightBg1/10 p-8 backdrop-blur-lg dark:border-darkBg4 dark:bg-darkBg1/10">
+            <img
+              src="/FullLogo3.png"
+              alt="APRV AI Logo"
+              className="w-40"
+            />
+            <div className="mx-auto flex items-center justify-between text-textSecondary">
+              <span className="flex h-[28px] items-center">Intelligent Brand Guidelines</span>
+            </div>
             <GoogleSignInButton onSuccess={handleSuccess} />
           </div>
         </div>
       )}
       {isLoggedIn && (
-        <div className="flex h-screen w-full flex-col bg-gradient-to-br from-lightBg1 to-lightBg2 text-textPrimary subpixel-antialiased dark:from-darkBg1 dark:to-darkBg2">
+        <div className="flex h-screen w-full flex-col bg-gradient-to-br from-lightBg1 to-lightBg2 text-textPrimary subpixel-antialiased dark:from-darkBg1 dark:to-darkBg1">
           <div className="flex h-full">
-            <div className="h-full w-[240px] bg-lightBg2 dark:bg-darkBg2">
+            <div className="h-full w-[240px] bg-lightBg2 dark:bg-darkBg1">
               <Upload />
             </div>
-            <div className="flex-1 bg-lightBg2 dark:bg-darkBg2">
+            <div className="flex-1 bg-lightBg2 dark:bg-darkBg1">
               <Chat />
             </div>
-            <div className="h-full w-[240px] bg-lightBg2 dark:bg-darkBg2">
+            <div className="h-full w-[240px] bg-lightBg2 dark:bg-darkBg1">
               <ContractChecks />
             </div>
           </div>
