@@ -17,7 +17,6 @@ interface Line {
 
 export const NetworkLines = () => {
   const linesRef = useRef<HTMLDivElement>(null);
-  const [currentPath, setCurrentPath] = useState<number[]>([]);
   const [nodes, setNodes] = useState<Node[]>([]);
   const [lines, setLines] = useState<Line[]>([]);
 
@@ -58,8 +57,6 @@ export const NetworkLines = () => {
       return;
     }
 
-    setCurrentPath(path);
-
     // Reset all lines and nodes
     lines.forEach(line => {
       line.element.classList.remove('active');
@@ -70,7 +67,7 @@ export const NetworkLines = () => {
     });
 
     // Animate path
-    path.forEach((nodeId, index) => {
+    path.forEach((_, index) => {
       if (index < path.length - 1) {
         setTimeout(() => {
           // Activate all nodes and lines in the path simultaneously
@@ -179,7 +176,7 @@ export const NetworkLines = () => {
     };
 
     // Create observer for watching nodes
-    const observer = new MutationObserver(mutations => {
+    const observer = new MutationObserver(_ => {
       if (initializeNetwork()) {
         observer.disconnect();
       }

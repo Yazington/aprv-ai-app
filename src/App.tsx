@@ -1,6 +1,5 @@
 import { CredentialResponse, GoogleOAuthProvider } from '@react-oauth/google';
 import { useEffect } from 'react';
-import { DarkModeToggle } from './components/DarkModeToggle';
 import { Chat } from './components/Chat';
 import ContractChecks from './components/ContractChecks';
 import Upload from './components/Upload';
