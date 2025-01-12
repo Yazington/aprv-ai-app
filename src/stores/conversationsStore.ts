@@ -16,7 +16,7 @@ interface ConversationStore {
   setAllUserConversations: (allUserConversations: Conversation[]) => Promise<void>;
   setSelectedConversationMessages: (messages: Message[]) => Promise<void>;
   setSelectedConversationUserInput: (input?: string) => Promise<void>;
-  setSelectedConversation: (conversation: Conversation) => Promise<void>;
+  setSelectedConversation: (conversation?: Conversation) => Promise<void>;
   setCurrentToolInUse: (toolInUse?: string) => Promise<void>;
 
   addMessageToSelectedConversation: (newMessage: Message) => Promise<void>;
@@ -36,7 +36,16 @@ export const useConversationStore = create<ConversationStore>(set => ({
   ...initialState,
 
   setSelectedConversationId: async (currentConversationId?: string) => {
-    set({ selectedConversationId: currentConversationId });
+    // Clear state and set new ID atomically
+    set(state => ({
+      selectedConversationId: currentConversationId,
+      selectedConversationMessages: [],
+      selectedConversationUserInput: undefined,
+      selectedConversation: undefined,
+      currentToolInUse: undefined,
+      // Preserve other state
+      allUserConversations: state.allUserConversations
+    }));
   },
 
   setAllUserConversations: async (allUserConversations: Conversation[]) => {
@@ -44,7 +53,12 @@ export const useConversationStore = create<ConversationStore>(set => ({
   },
 
   setSelectedConversationMessages: async (messages: Message[]) => {
-    set({ selectedConversationMessages: messages });
+    set(state => ({
+      selectedConversationMessages: messages.map(msg => ({
+        ...msg,
+        content: msg.content || '' // Ensure content is never undefined
+      }))
+    }));
   },
 
   setSelectedConversationUserInput: async (input?: string) => {
@@ -63,8 +77,9 @@ export const useConversationStore = create<ConversationStore>(set => ({
         isStreaming: false,
       };
 
-      if (updatedMessages[updatedMessages.length - 1].content.includes('[DONE-STREAMING-APRV-AI]')) {
-        updatedMessages[updatedMessages.length - 1].content.replace('[DONE-STREAMING-APRV-AI]', '');
+      const lastMessage = updatedMessages[updatedMessages.length - 1];
+      if (lastMessage.content.includes('[DONE-STREAMING-APRV-AI]')) {
+        lastMessage.content = lastMessage.content.replace('[DONE-STREAMING-APRV-AI]', '');
       }
 
       return { ...state, selectedConversationMessages: updatedMessages };
@@ -85,7 +100,7 @@ export const useConversationStore = create<ConversationStore>(set => ({
       return { ...state, selectedConversationMessages: updatedMessages };
     });
   },
-  setSelectedConversation: async (conversation: Conversation) => {
+  setSelectedConversation: async (conversation?: Conversation) => {
     set({ selectedConversation: conversation });
   },
   createNewConversation: async () => {

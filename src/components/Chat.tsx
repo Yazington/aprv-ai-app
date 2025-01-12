@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Message } from '../types/Message';
 import InputSection from './InputSection';
 import { UploadedFiles } from './UploadedFiles';
@@ -13,55 +13,9 @@ interface StreamedContent {
   content: string;
 }
 
-// // Component to render all previous messages
-// const PreviousMessages = ({ messages }: { messages: Message[] }) => {
-//   const messageEndRef = useRef<HTMLDivElement>(null);
-
-//   useEffect(() => {
-//     // Scroll to bottom whenever messages change
-//     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-//   }, [messages]);
-//   // const reversedMessages = messages.reverse()
-//   return (
-//     <div className="flex max-h-full min-w-0 flex-col overflow-y-auto">
-//       {messages.map((message, index) => (
-//         <div
-//           key={'previous-messages-' + index}
-//           className={`flex basis-full items-center p-5 ${message.is_from_human ? 'justify-end' : ''}`}
-//         >
-//           <div className="w-full basis-[10%] items-center justify-center">
-//             {!message.is_from_human && (
-//               <FaRobot
-//                 size={'40px'}
-//                 className="mr-2 w-full basis-[10%] items-center justify-center text-gray-500"
-//               />
-//             )}
-//           </div>
-//           <div className={`p-5 ${message.is_from_human ? 'rounded-2xl bg-darkBg4 shadow-all-around' : ''} min-w-0 basis-[90%] break-words`}>
-//             <ReactMarkdown
-//               key={index + 'message'}
-//               className={`message ${message.is_from_human ? 'justify-end text-end' : 'justify-start text-start'} leading-tight tracking-tight`}
-//             >
-//               {message.content}
-//             </ReactMarkdown>
-//           </div>
-//           <div className="w-full basis-[10%] items-center justify-center">
-//             {message.is_from_human && (
-//               <RiUser6Line
-//                 size={'40px'}
-//                 className="ml-2 w-full basis-[10%] items-center justify-center text-blue-500"
-//               />
-//             )}
-//           </div>
-//         </div>
-//       ))}
-//       {/* Reference element at the end of the messages */}
-//       <div ref={messageEndRef} />
-//     </div>
-//   );
-// };
-
 export const Chat = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isStreaming, setIsStreaming] = useState<boolean>(false);
   const {
     selectedConversationId,
     selectedConversationUserInput,
@@ -96,29 +50,146 @@ export const Chat = () => {
 
   const generateSourceRef = useRef<EventSource | null>(null);
 
+  // Cleanup when component unmounts or conversation changes
   useEffect(() => {
     return () => {
+      // Clean up event source
       if (generateSourceRef.current) {
         generateSourceRef.current.close();
+        generateSourceRef.current = null;
       }
+      
+      // Reset all states
+      setCurrentToolInUse(undefined);
+      setIsStreaming(false);
+      setIsLoading(false);
+      
+      // Clear any incomplete messages
+      useConversationStore.setState(state => ({
+        selectedConversationMessages: state.selectedConversationMessages.filter(msg => !msg.isStreaming)
+      }));
     };
-  }, []);
+  }, [selectedConversationId, setCurrentToolInUse]);
 
   useEffect(() => {
-    const getConversation = async () => {
-      apiClient
-        .get(`/conversations/conversation?conversation_id=${selectedConversationId}`)
-        .then(response => {
-          if (response.status == 200) {
-            setSelectedConversation(response.data);
+    let mounted = true;
+
+    const loadConversationData = async () => {
+      // Skip if no ID, already loading, or unmounted
+      if (!selectedConversationId || isLoading || !mounted) {
+        if (mounted) {
+          // Clear state if no conversation selected
+          useConversationStore.setState({
+            selectedConversationMessages: [],
+            selectedConversation: undefined,
+            selectedConversationUserInput: undefined,
+            currentToolInUse: undefined
+          });
+          setIsStreaming(false);
+          setCurrentToolInUse(undefined);
+        }
+        return;
+      }
+
+      // Reset states and clear messages
+      if (mounted) {
+        setIsLoading(true);
+        setIsStreaming(false);
+        setCurrentToolInUse(undefined);
+
+        // Close any existing stream
+        if (generateSourceRef.current) {
+          generateSourceRef.current.close();
+          generateSourceRef.current = null;
+        }
+
+        // Clear messages before loading new ones
+        useConversationStore.setState({ selectedConversationMessages: [] });
+      }
+
+      try {
+        // First get conversation details
+        const conversationResponse = await apiClient.get(
+          `/conversations/conversation?conversation_id=${selectedConversationId}`
+        );
+
+        // Validate conversation response
+        if (conversationResponse.status !== 200 || !conversationResponse.data) {
+          throw new Error('Conversation not found');
+        }
+
+        // Process conversation data
+        const conversation = conversationResponse.data;
+        const normalizedConversation = {
+          ...conversation,
+          id: typeof conversation.id === 'object' ? conversation.id?._id || conversation.id : conversation.id,
+          user_id: typeof conversation.user_id === 'object' ? 
+            conversation.user_id?._id || conversation.user_id : 
+            conversation.user_id,
+          all_messages_ids: conversation.all_messages_ids?.map((msgId: any) => 
+            typeof msgId === 'object' ? msgId?._id || msgId : msgId
+          )
+        };
+        
+        if (mounted) {
+          // Set conversation first
+          setSelectedConversation(normalizedConversation);
+
+          // Then get messages
+          const messagesResponse = await apiClient.get(
+            `/conversations/conversation-messages?conversation_id=${selectedConversationId}`
+          );
+
+          if (!mounted) return;
+
+          if (messagesResponse.status !== 200 || !messagesResponse.data) {
+            throw new Error('Failed to load messages');
           }
-        })
-        .catch(error => console.log(error));
+
+          // Process and set messages
+          const messages = messagesResponse.data.map((message: any) => ({
+            ...message,
+            isStreaming: false,
+            id: typeof message.id === 'object' ? message.id?._id || message.id : message.id,
+            conversation_id: typeof message.conversation_id === 'object' ? 
+              message.conversation_id?._id || message.conversation_id : 
+              message.conversation_id
+          }));
+
+          // Set messages after conversation is set
+          useConversationStore.setState({ selectedConversationMessages: messages });
+        }
+      } catch (error) {
+        console.error('Error loading conversation data:', error);
+        if (mounted) {
+          // Clear all conversation state on error
+          useConversationStore.setState({
+            selectedConversationMessages: [],
+            selectedConversation: undefined,
+            selectedConversationUserInput: undefined,
+            currentToolInUse: undefined
+          });
+          // Reset UI state
+          setIsStreaming(false);
+          setCurrentToolInUse(undefined);
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
     };
-    if (selectedConversationId) {
-      getConversation();
-    }
-  }, [selectedConversationId]);
+
+    loadConversationData();
+
+    return () => {
+      mounted = false;
+      if (generateSourceRef.current) {
+        generateSourceRef.current.close();
+        generateSourceRef.current = null;
+      }
+    };
+  }, [selectedConversationId, setSelectedConversation, isLoading]);
 
   const closeEventSource = (eventSource?: EventSource) => {
     if (!eventSource && generateSourceRef.current) {
@@ -128,44 +199,92 @@ export const Chat = () => {
   };
 
   const getModelResponseAndStreamTokens = async (firstPrompt: string): Promise<void> => {
-    const response = await apiClient.post(
-      '/chat/create_prompt',
-      { prompt: firstPrompt, conversation_id: selectedConversationId ?? null },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    let mounted = true;
 
-    if (response.status !== 200) {
-      throw new Error('Network response was not ok');
-    }
-    const message: Message = {
-      id: response.data.message_id,
-      conversation_id: response.data.conversation_id,
-      content: response.data.prompt,
-      is_from_human: true,
-      isStreaming: false,
+    // Cleanup function to ensure proper state reset
+    const cleanup = () => {
+      if (generateSourceRef.current) {
+        generateSourceRef.current.close();
+        generateSourceRef.current = null;
+      }
+      if (mounted) {
+        setCurrentToolInUse(undefined);
+        setIsStreaming(false);
+      }
     };
 
-    if (message.conversation_id) {
-      setSelectedConversationId(message.conversation_id);
+    // Close any existing stream before starting a new one
+    cleanup();
+
+    try {
+      if (!mounted) return;
+      setIsStreaming(true);
+      const response = await apiClient.post(
+        '/chat/create_prompt',
+        { prompt: firstPrompt, conversation_id: selectedConversationId ?? null },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error('Network response was not ok');
+      }
+
+      // Normalize response data
+      const messageId = typeof response.data.message_id === 'object' ? 
+        response.data.message_id?._id || response.data.message_id : 
+        response.data.message_id;
+      const conversationId = typeof response.data.conversation_id === 'object' ? 
+        response.data.conversation_id?._id || response.data.conversation_id : 
+        response.data.conversation_id;
+
+      const message: Message = {
+        id: messageId,
+        conversation_id: conversationId,
+        content: response.data.prompt,
+        is_from_human: true,
+        isStreaming: false,
+      };
+
+      if (conversationId) {
+        setSelectedConversationId(conversationId);
+      }
+
+      // Add the user's message first
+      addMessageToSelectedConversation({
+        content: firstPrompt,
+        is_from_human: true,
+        conversation_id: message.conversation_id ?? undefined,
+        isStreaming: false,
+      });
+
+      // Then add the assistant's message that will stream
+      addMessageToSelectedConversation({
+        content: '',
+        is_from_human: false,
+        conversation_id: message.conversation_id ?? undefined,
+        isStreaming: true,
+      });
+
+      const generationSource = new EventSource(
+        `${apiClient.defaults.baseURL}/chat/generate/${message.id}?access_token=${accessToken}&user_id=${userId}`
+      );
+      generateSourceRef.current = generationSource;
+
+      setupEventHandlers(generationSource);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Remove both messages if there was an error
+      useConversationStore.setState(state => ({
+        selectedConversationMessages: state.selectedConversationMessages.slice(0, -2)
+      }));
+      setCurrentToolInUse(undefined);
+    } finally {
+      setIsStreaming(false);
     }
-
-    addMessageToSelectedConversation({
-      content: '',
-      is_from_human: false,
-      conversation_id: message.conversation_id ?? undefined,
-      isStreaming: true,
-    });
-
-    const generationSource = new EventSource(
-      `${apiClient.defaults.baseURL}/chat/generate/${message.id}?access_token=${accessToken}&user_id=${userId}`
-    );
-    generateSourceRef.current = generationSource;
-
-    setupEventHandlers(generationSource);
   };
 
   const setupEventHandlers = (generationSource: EventSource) => {
@@ -180,6 +299,8 @@ export const Chat = () => {
     if (content.includes('[DONE-STREAMING-APRV-AI]')) {
       markLastMessageAsComplete();
       closeEventSource();
+      setIsStreaming(false);
+      setCurrentToolInUse(undefined);
       return;
     }
 
@@ -202,23 +323,43 @@ export const Chat = () => {
 
   const handleError = (event: Event, generationSource: EventSource) => {
     if (event instanceof ErrorEvent) {
-      console.error('generation source failed:', event.message);
+      console.error('Generation source failed:', event.message);
     } else {
-      console.error('generation source failed:', event);
+      console.error('Generation source failed:', event);
     }
+
+    // Clean up UI state
+    setCurrentToolInUse(undefined);
+    markLastMessageAsComplete();
+    setIsStreaming(false);
+    
+    // Remove the streaming message if it exists
+    useConversationStore.setState(state => ({
+      selectedConversationMessages: state.selectedConversationMessages.filter(msg => !msg.isStreaming)
+    }));
+
+    // Close the event source
     generationSource.close();
+    generateSourceRef.current = null;
   };
 
-  const handleSend = () => {
-    if (!selectedConversationUserInput || selectedConversationUserInput.trim() === '') return;
-    addMessageToSelectedConversation({
-      content: selectedConversationUserInput,
-      is_from_human: true,
-      conversation_id: selectedConversationId,
-      isStreaming: false,
-    });
-    getModelResponseAndStreamTokens(selectedConversationUserInput);
+  const handleSend = async () => {
+    const input = selectedConversationUserInput?.trim();
+    if (!input) return;
+
+    // Clear input immediately to prevent double sends
     setSelectedConversationUserInput('');
+
+    try {
+      // Store input before sending in case we need to restore it on error
+      const originalInput = input;
+
+      await getModelResponseAndStreamTokens(input);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      // Restore input on error so user doesn't lose their message
+      setSelectedConversationUserInput(input);
+    }
   };
 
   return (
@@ -227,7 +368,35 @@ export const Chat = () => {
         <UploadedFiles />
         <div className="flex-1 overflow-hidden">
           <div className="h-full overflow-y-auto bg-lightBg2 shadow-md [--scrollbar-left:0] dark:bg-darkBg1">
-            <PreviousMessages />
+            {isLoading && !isStreaming ? (
+              <div className="flex h-full items-center justify-center">
+                <div className="flex items-center space-x-2">
+                  <svg
+                    className="h-8 w-8 animate-spin text-textPrimary dark:text-textSecondary"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span className="text-textSecondary dark:text-textTert">Loading messages...</span>
+                </div>
+              </div>
+            ) : (
+              <PreviousMessages />
+            )}
           </div>
         </div>
         <div className="sticky bottom-0 mt-auto">
@@ -235,6 +404,7 @@ export const Chat = () => {
             input={selectedConversationUserInput}
             setInput={setSelectedConversationUserInput}
             handleSend={handleSend}
+            isLoading={isLoading || isStreaming}
           />
         </div>
       </div>

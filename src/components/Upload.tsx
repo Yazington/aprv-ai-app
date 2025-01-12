@@ -4,6 +4,7 @@ import { useAuthStore } from '../stores/authStore';
 import { useConversationStore } from '../stores/conversationsStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Message } from '../types/Message';
+import { Conversation } from '../types/Conversation';
 import CustomFileUploader from './CustomFileUploader';
 import { IoCreateOutline } from 'react-icons/io5';
 import { DarkModeToggle } from './DarkModeToggle';
@@ -21,39 +22,84 @@ export default function Upload() {
   const {
     allUserConversations,
     selectedConversationId,
-    setCurrentConversationId,
+    setSelectedConversationId,
     setAllUserConversations,
-    setCurrentConversationMessages,
+    setSelectedConversationMessages,
+    setSelectedConversation,
     createNewConversation,
   } = useConversationStore(
     useShallow(state => ({
       selectedConversationId: state.selectedConversationId,
       allUserConversations: state.allUserConversations,
-      setCurrentConversationId: state.setSelectedConversationId,
-      setCurrentConversationMessages: state.setSelectedConversationMessages,
+      setSelectedConversationId: state.setSelectedConversationId,
+      setSelectedConversationMessages: state.setSelectedConversationMessages,
       setAllUserConversations: state.setAllUserConversations,
+      setSelectedConversation: state.setSelectedConversation,
       createNewConversation: state.createNewConversation,
     }))
   );
 
   const [isLoading, setIsLoading] = useState<boolean | undefined>(undefined);
 
+  const fetchConversations = async () => {
+    if (userId) {
+      try {
+        const response = await apiClient.get(`/conversations?user_id=${userId}`);
+        // Normalize conversation IDs
+        const normalizedConversations = response.data.map((conv: any): Conversation => ({
+          ...conv,
+          id: typeof conv.id === 'object' ? conv.id?._id || conv.id : conv.id,
+          user_id: typeof conv.user_id === 'object' ? 
+            conv.user_id?._id || conv.user_id : 
+            conv.user_id,
+          all_messages_ids: conv.all_messages_ids?.map((msgId: any) => 
+            typeof msgId === 'object' ? msgId?._id || msgId : msgId
+          )
+        }));
+        setAllUserConversations(normalizedConversations);
+      } catch (error) {
+        console.error('Error fetching conversations:', error);
+        setAllUserConversations([]);
+      }
+    }
+  };
+
   useEffect(() => {
     if (userId) {
-      apiClient
-        .get(`/conversations?user_id=${userId}`)
-        .then(response => setAllUserConversations(response.data))
-        .catch(console.error);
+      fetchConversations();
+    } else {
+      setAllUserConversations([]);
     }
   }, [userId]);
 
-  const loadConversation = async (selectedConversationId: string | undefined) => {
-    if (!selectedConversationId) {
-      return;
+  // Refresh conversations after file upload or new conversation
+  useEffect(() => {
+    if (selectedConversationId && userId) {
+      fetchConversations();
     }
-    setCurrentConversationId(selectedConversationId);
-    const messages = await apiClient.get(`/conversations/conversation-messages?conversation_id=${selectedConversationId}`);
-    setCurrentConversationMessages(messages.data.map((message: Message) => ({ ...message, isStreaming: false })));
+  }, [selectedConversationId]);
+
+  const loadConversation = async (conversationId: string | undefined) => {
+    if (!conversationId) return;
+    
+    // Set loading state
+    setIsLoading(true);
+    
+    try {
+      // First verify the conversation exists
+      const response = await apiClient.get(`/conversations/conversation?conversation_id=${conversationId}`);
+      
+      if (response.status === 200 && response.data) {
+        // Clear previous state first
+        await setSelectedConversationId(conversationId);
+      } else {
+        console.error('Failed to verify conversation:', conversationId);
+      }
+    } catch (error) {
+      console.error('Error loading conversation:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleFileUpload = async (fileList: FileList, isDesign: boolean) => {
@@ -79,7 +125,8 @@ export default function Upload() {
         },
       });
       if (response.data) {
-        setCurrentConversationId(response.data.conversation_id);
+        setSelectedConversationId(response.data.conversation_id);
+        await fetchConversations(); // Refresh conversations after upload
       }
       setIsLoading(false);
     } catch (error) {
@@ -96,7 +143,10 @@ export default function Upload() {
           <div className="flex items-center space-x-2">
             <button
               className="rounded-xl bg-lightBg3 p-3 text-textSecondary transition-all duration-300 hover:bg-lightBg4 hover:text-textPrimary hover:shadow-lg dark:bg-darkBg3 dark:text-textTert dark:hover:bg-darkBg4 dark:hover:text-textSecondary"
-              onClick={createNewConversation}
+              onClick={async () => {
+                await createNewConversation();
+                await fetchConversations();
+              }}
               aria-label="Create New Conversation"
             >
               <IoCreateOutline size={'20px'} />

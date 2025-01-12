@@ -16,15 +16,26 @@ const PreviousMessages = () => {
     }))
   );
 
-  const [regularMessages, setRegularMessages] = useState<Message[]>(selectedConversationMessages);
+  const [regularMessages, setRegularMessages] = useState<Message[]>(
+    selectedConversationMessages?.map(message => ({
+      ...message,
+      content: message?.content || '',
+    })) || []
+  );
 
+  // Process messages when they change or tool state updates
   useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [selectedConversationMessages]);
+    const processMessages = () => {
+      // Skip if no messages
+      if (!selectedConversationMessages?.length) {
+        setRegularMessages([]);
+        return;
+      }
 
-  useEffect(() => {
-    setRegularMessages(
-      selectedConversationMessages.map(message => {
+      // Process messages
+      const processedMessages = selectedConversationMessages.map(message => {
+        if (!message?.content) return { ...message, content: '' };
+        
         const lines = message.content.split('\n');
         let filteredLines = lines.filter(line => !line.includes('[TOOL_USAGE_APRV_AI_DONE]:'));
         filteredLines = filteredLines.map(line => line.replace('[TOOL_USAGE_APRV_AI]:', ' Tool Use: '));
@@ -33,45 +44,72 @@ const PreviousMessages = () => {
           filteredLines = filteredLines.filter(line => !line.includes('[TOOL_USAGE_APRV_AI]:'));
         }
         return { ...message, content: filteredLines.join('\n') };
-      })
-    );
+      });
+
+      // Update messages
+      setRegularMessages(processedMessages);
+    };
+
+    // Process messages and set up scroll in sequence
+    processMessages();
+
+    // Set up scroll after state update
+    const timeoutId = setTimeout(() => {
+      // First RAF for state update
+      requestAnimationFrame(() => {
+        // Second RAF for DOM update
+        requestAnimationFrame(() => {
+          if (messageEndRef.current && selectedConversationMessages.length > 0) {
+            messageEndRef.current.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      });
+    }, 100); // Longer delay to ensure React state and DOM are settled
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [selectedConversationMessages, currentToolInUse]);
 
   const messageVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
+    visible: (isStreaming: boolean) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: isStreaming ? 0.1 : 0.3,
+        ease: isStreaming ? 'linear' : 'easeOut',
+      },
+    }),
     exit: { opacity: 0, y: -20 },
   };
 
   const textVariants = {
     hidden: { opacity: 0 },
-    visible: (i: number) => ({
+    visible: (isStreaming: boolean) => ({
       opacity: 1,
       transition: {
-        delay: i * 0.05,
-        duration: 0.3,
+        duration: isStreaming ? 0.1 : 0.3,
+        ease: isStreaming ? 'linear' : 'easeOut',
       },
     }),
-    stream: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
   };
 
-  const tokenVariants = {
-    hidden: { opacity: 0 },
+  const toolVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
     visible: {
       opacity: 1,
+      scale: 1,
       transition: {
-        duration: 0.5,
+        duration: 0.3,
+        ease: 'easeOut',
       },
     },
     exit: {
       opacity: 0,
+      scale: 0.95,
       transition: {
-        duration: 0.3,
+        duration: 0.2,
       },
     },
   };
@@ -85,11 +123,11 @@ const PreviousMessages = () => {
             className={`grid basis-full grid-cols-[40px_1fr_40px] items-center justify-center gap-10 ${
               message.is_from_human ? 'justify-end' : ''
             } ${message.isStreaming ? 'animate-fade-in' : ''}`}
+            custom={message.isStreaming}
             variants={messageVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            transition={{ duration: 0.3 }}
           >
             <div className="flex h-10 w-10 items-start justify-center">
               {!message.is_from_human && (
@@ -117,10 +155,10 @@ const PreviousMessages = () => {
               } transition-all duration-300 hover:shadow-xl`}
             >
               <motion.div
-                variants={textVariants}
-                initial="hidden"
-                animate={message.isStreaming ? 'stream' : 'visible'}
-                transition={{ duration: 0.3 }}
+              custom={message.isStreaming}
+              variants={textVariants}
+              initial="hidden"
+              animate="visible"
               >
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
@@ -188,7 +226,7 @@ const PreviousMessages = () => {
       </AnimatePresence>
       {currentToolInUse && (
         <motion.div
-          variants={tokenVariants}
+          variants={toolVariants}
           initial="hidden"
           animate="visible"
         >
