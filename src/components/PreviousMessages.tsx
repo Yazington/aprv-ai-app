@@ -148,6 +148,20 @@ const PreviousMessages = () => {
                 >
                   {message.content}
                 </ReactMarkdown>
+                {!message.is_from_human && message.source_info && message.source_info.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {message.source_info.map((source, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center rounded-lg bg-lightBg4/50 px-2 py-1 text-xs text-textSecondary dark:bg-darkBg4/50"
+                      >
+                        <span className="mr-1">📄</span>
+                        <span className="font-medium">{source.filename}</span>
+                        {source.position && <span className="ml-1 text-textTert">({source.position})</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </motion.div>
             </motion.div>
             <div className="flex h-10 w-10 items-start justify-center">

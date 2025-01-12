@@ -37,8 +37,6 @@ export default function Upload() {
   );
 
   const [isLoading, setIsLoading] = useState<boolean | undefined>(undefined);
-  const [designFiles, setDesignFiles] = useState<File[] | null>([]);
-  const [otherFiles, setOtherFiles] = useState<File[] | null>([]);
 
   useEffect(() => {
     if (userId) {
@@ -48,22 +46,6 @@ export default function Upload() {
         .catch(console.error);
     }
   }, [userId]);
-
-  useEffect(() => {
-    // get all files
-    if (selectedConversationId) {
-      apiClient
-        .get(`/upload?conversation_id=${selectedConversationId}`)
-        .then(response => response.data)
-        .then(data => {
-          setDesignFiles([data.design]);
-          setOtherFiles(data.guidelines);
-        });
-    } else {
-      setDesignFiles(null);
-      setOtherFiles(null);
-    }
-  }, [selectedConversationId]);
 
   const loadConversation = async (selectedConversationId: string | undefined) => {
     if (!selectedConversationId) {
@@ -78,7 +60,6 @@ export default function Upload() {
     if (!fileList || fileList.length === 0) return;
     setIsLoading(true);
     try {
-      // for (let i = 0; i < fileList.length; i++) {
       const file = fileList[fileList.length - 1];
       if (!file) {
         setIsLoading(undefined);
@@ -97,16 +78,10 @@ export default function Upload() {
           'Content-Type': 'multipart/form-data',
         },
       });
-      if (isDesign) {
-        if (designFiles) setDesignFiles([...designFiles, file]);
-      } else {
-        if (otherFiles) setOtherFiles([...otherFiles, file]);
-      }
       if (response.data) {
         setCurrentConversationId(response.data.conversation_id);
       }
       setIsLoading(false);
-      // }
     } catch (error) {
       console.error(error);
       setIsLoading(undefined);
@@ -164,25 +139,6 @@ export default function Upload() {
 
         <div className="flex-shrink-0 border-t border-lightBg4 bg-lightBg3 p-4 dark:border-darkBg4 dark:bg-darkBg3">
           <h3 className="mb-4 text-center text-base font-semibold text-textPrimary dark:text-textSecondary">Design Upload</h3>
-
-          <div className="w-full overflow-hidden">
-            {designFiles && designFiles.length > 0 && (
-              <ul className="mb-4 space-y-2">
-                {designFiles
-                  .filter(file => file !== null) // Filter out null values
-                  .map((file, index) => (
-                    <li
-                      key={(file.lastModified || '') + '' + index + 'other'}
-                      className="flex flex-col space-y-1 bg-lightBg4 p-3 text-sm text-textSecondary transition-all duration-300 hover:bg-lightBg4 dark:bg-darkBg3 dark:text-textTert dark:hover:bg-darkBg4"
-                    >
-                      <span>{truncateMiddle(file.name, 15)}</span>
-                      <span>{truncateMiddle(file.type, 15)}</span>
-                      <span>{(file.size / 1000000).toFixed(2)} MB</span>
-                    </li>
-                  ))}
-              </ul>
-            )}
-          </div>
           <div>
             <div className="flex min-w-0 flex-1 flex-col content-center justify-center truncate">
               <CustomFileUploader
@@ -198,24 +154,6 @@ export default function Upload() {
 
         <div className="flex-shrink-0 border-t border-lightBg4 bg-lightBg3 p-4 dark:border-darkBg4 dark:bg-darkBg3">
           <h3 className="mb-4 text-center text-base font-semibold text-textPrimary dark:text-textSecondary">Guideline Upload</h3>
-          <div className="w-full overflow-hidden">
-            {otherFiles !== null && otherFiles.length > 0 && (
-              <ul className="mb-4 space-y-2">
-                {otherFiles
-                  .filter(file => file !== null)
-                  .map((file, index) => (
-                    <li
-                      key={file.lastModified + index + 'other'}
-                      className="flex flex-col space-y-1 bg-lightBg4 p-3 text-sm text-textSecondary transition-all duration-300 hover:bg-lightBg4 dark:bg-darkBg3 dark:text-textTert dark:hover:bg-darkBg4"
-                    >
-                      <span>{truncateMiddle(file.name, 15)}</span>
-                      <span>{truncateMiddle(file.type, 15)}</span>
-                      <span>{file.size / 1000000} MB</span>
-                    </li>
-                  ))}
-              </ul>
-            )}
-          </div>
           {!isLoading && (
             <div className="w-full">
               <div className="w-full min-w-0 flex-1 flex-col content-center justify-center truncate">
@@ -258,6 +196,7 @@ export default function Upload() {
     </div>
   );
 }
+
 function truncateMiddle(text: string, maxLength: number): string {
   if (!text || text.length <= maxLength) return text;
   const endLength = Math.floor(maxLength / 2);

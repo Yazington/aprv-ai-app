@@ -6,4 +6,9 @@ export interface Message {
   created_at?: any;
   modified_at?: any;
   isStreaming: boolean;
+  uploaded_pdf_ids?: string[];
+  source_info?: {
+    filename: string;
+    position?: string;
+  }[];
 }

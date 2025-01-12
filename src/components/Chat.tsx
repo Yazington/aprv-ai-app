@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Message } from '../types/Message';
 import InputSection from './InputSection';
+import { UploadedFiles } from './UploadedFiles';
 import { apiClient } from '../services/axiosConfig';
 import { useShallow } from 'zustand/react/shallow';
 import { useConversationStore } from '../stores/conversationsStore';
@@ -223,6 +224,7 @@ export const Chat = () => {
   return (
     <div className="flex h-screen flex-col">
       <div className="relative flex h-full flex-col p-10">
+        <UploadedFiles />
         <div className="flex-1 overflow-hidden">
           <div className="h-full overflow-y-auto bg-lightBg2 shadow-md [--scrollbar-left:0] dark:bg-darkBg1">
             <PreviousMessages />
