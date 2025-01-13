@@ -3,20 +3,19 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useConversationStore } from '../stores/conversationsStore';
 import { useShallow } from 'zustand/shallow';
-import ReflectingText from './GlowingText';
 import { Message } from '../types/Message';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const PreviousMessages = () => {
   const messageEndRef = useRef<HTMLDivElement>(null);
-  const { currentToolInUse, selectedConversationMessages } = useConversationStore(
+  const { selectedConversationMessages } = useConversationStore(
     useShallow(state => ({
-      currentToolInUse: state.currentToolInUse,
       selectedConversationMessages: state.selectedConversationMessages,
     }))
   );
 
   const [regularMessages, setRegularMessages] = useState<Message[]>(selectedConversationMessages);
+  const [toolUsageDone, setToolUsageDone] = useState(false);
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -26,16 +25,18 @@ const PreviousMessages = () => {
     setRegularMessages(
       selectedConversationMessages.map(message => {
         const lines = message.content.split('\n');
-        let filteredLines = lines.filter(line => !line.includes('[TOOL_USAGE_APRV_AI_DONE]:'));
-        filteredLines = filteredLines.map(line => line.replace('[TOOL_USAGE_APRV_AI]:', ' Tool Use: '));
-
-        if (currentToolInUse) {
-          filteredLines = filteredLines.filter(line => !line.includes('[TOOL_USAGE_APRV_AI]:'));
-        }
-        return { ...message, content: filteredLines.join('\n') };
+        const processedLines = lines.map(line => {
+          if (line.includes('[TOOL_USAGE_APRV_AI_DONE]:')) {
+            const [before, _] = line.split('[TOOL_USAGE_APRV_AI_DONE]:');
+            // return `${before}🔧 TOOL USE :\n\n**${after.trim()}**`;
+            return `${before}\n\n`;
+          }
+          return line;
+        });
+        return { ...message, content: processedLines.join('\n') };
       })
     );
-  }, [selectedConversationMessages, currentToolInUse]);
+  }, [selectedConversationMessages]);
 
   const messageVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -60,20 +61,76 @@ const PreviousMessages = () => {
     },
   };
 
-  const tokenVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-      },
-    },
-    exit: {
-      opacity: 0,
-      transition: {
-        duration: 0.3,
-      },
-    },
+  const processMessageContent = (content: string) => {
+    const parts = content.split('\n');
+    return parts.map((line, index) => {
+      if (line.includes('[TOOL_USAGE_APRV_AI_DONE]:')) {
+        setToolUsageDone(true);
+        const [before, _] = line.split('[TOOL_USAGE_APRV_AI_DONE]:');
+        return (
+          <div key={index}>
+            {before && <ReactMarkdown remarkPlugins={[remarkGfm]}>{before}</ReactMarkdown>}
+          </div>
+        );
+      } else if (line.includes('[TOOL_USAGE_APRV_AI]:')) {
+        const [before, after] = line.split('[TOOL_USAGE_APRV_AI]:');
+        return (
+          <div key={index}>
+            {before && <ReactMarkdown remarkPlugins={[remarkGfm]}>{before}</ReactMarkdown>}
+            <motion.span
+              initial={{ opacity: 0.5 }}
+              animate={!toolUsageDone ? { 
+                opacity: [0.5, 1, 0.5],
+                scale: [1, 1.02, 1],
+                color: ['#60A5FA', '#3B82F6', '#60A5FA']
+              } : { 
+                opacity: 1,
+                scale: 1,
+                color: '#60A5FA'
+              }}
+              transition={{
+                duration: 2,
+                repeat: toolUsageDone ? 0 : Infinity,
+                ease: "easeInOut"
+              }}
+              className="font-semibold"
+            >
+              🔧 TOOL USE : {after.trim()}
+            </motion.span>
+          </div>
+        );
+      }
+      return (
+        <div key={index}>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            className="prose prose-zinc dark:prose-invert prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-textPrimary prose-code:text-textSecondary dark:prose-headings:text-gray-50 dark:prose-p:text-gray-200 dark:prose-a:text-textSecondary dark:prose-code:text-textTert max-w-none"
+            components={{
+              a: ({ node, ...props }) => (
+                <a
+                  {...props}
+                  className="text-textPrimary underline hover:text-textSecondary dark:text-textSecondary dark:hover:text-textTert"
+                />
+              ),
+              code: ({ node, ...props }) => (
+                <code
+                  {...props}
+                  className="rounded bg-lightBg3 px-1 py-0.5 text-gray-800 dark:bg-darkBg2 dark:text-gray-200"
+                />
+              ),
+              pre: ({ node, ...props }) => (
+                <pre
+                  {...props}
+                  className="overflow-hidden rounded-lg bg-lightBg3 p-4 dark:bg-darkBg2"
+                />
+              )
+            }}
+          >
+            {line}
+          </ReactMarkdown>
+        </div>
+      );
+    });
   };
 
   return (
@@ -122,32 +179,7 @@ const PreviousMessages = () => {
                 animate={message.isStreaming ? 'stream' : 'visible'}
                 transition={{ duration: 0.3 }}
               >
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  className="prose prose-zinc dark:prose-invert prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-textPrimary prose-code:text-textSecondary dark:prose-headings:text-gray-50 dark:prose-p:text-gray-200 dark:prose-a:text-textSecondary dark:prose-code:text-textTert max-w-none"
-                  components={{
-                    a: ({ node, ...props }) => (
-                      <a
-                        {...props}
-                        className="text-textPrimary underline hover:text-textSecondary dark:text-textSecondary dark:hover:text-textTert"
-                      />
-                    ),
-                    code: ({ node, ...props }) => (
-                      <code
-                        {...props}
-                        className="rounded bg-lightBg3 px-1 py-0.5 text-gray-800 dark:bg-darkBg2 dark:text-gray-200"
-                      />
-                    ),
-                    pre: ({ node, ...props }) => (
-                      <pre
-                        {...props}
-                        className="overflow-hidden rounded-lg bg-lightBg3 p-4 dark:bg-darkBg2"
-                      />
-                    ),
-                  }}
-                >
-                  {message.content}
-                </ReactMarkdown>
+                {processMessageContent(message.content)}
               </motion.div>
             </motion.div>
             <div className="flex h-10 w-10 items-start justify-center">
@@ -172,15 +204,6 @@ const PreviousMessages = () => {
           </motion.div>
         ))}
       </AnimatePresence>
-      {currentToolInUse && (
-        <motion.div
-          variants={tokenVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <ReflectingText text={currentToolInUse} />
-        </motion.div>
-      )}
       <div ref={messageEndRef} />
     </div>
   );
