@@ -11,6 +11,11 @@
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "noEmit": true,
     "jsx": "react-jsx",
 

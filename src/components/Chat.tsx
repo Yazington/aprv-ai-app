@@ -93,7 +93,7 @@ export const Chat = () => {
 
       // Reset states and clear messages
       if (mounted) {
-        setIsLoading(true);
+        // setIsLoading(true);
         setIsStreaming(false);
         setCurrentToolInUse(undefined);
 
