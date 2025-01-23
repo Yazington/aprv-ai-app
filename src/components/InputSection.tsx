@@ -2,52 +2,65 @@ import React, { useEffect, useState } from 'react';
 
 interface Props {
   input: string | undefined;
-  setInput: (input: string | undefined) => void;
+  setInput: (input: string) => void;
   handleSend: () => void;
 }
 
 const InputSection = ({ input, setInput, handleSend }: Props) => {
-  const textareaRef = React.useRef<HTMLInputElement>(null);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const [isInputNotEmpty, setIsInputNotEmpty] = useState(false);
 
   useEffect(() => {
     if (textareaRef.current) {
+      // Reset height first to get correct scrollHeight
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      // Set new height with limits
+      const newHeight = Math.min(textareaRef.current.scrollHeight, 300);
+      textareaRef.current.style.height = `${newHeight}px`;
     }
-    setIsInputNotEmpty(input ? input.trim().length > 0 : false);
+    if(!input) return;
+    setIsInputNotEmpty(input.trim().length > 0);
   }, [input]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setInput(newValue);
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 300)}px`;
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Submit on Enter without Shift
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (isInputNotEmpty) {
+        handleSend();
+        setInput('');
+      }
     }
+    // Shift+Enter will create new line naturally
   };
 
   return (
     <div className="flex w-full transform-gpu py-4">
       <div className="relative mx-auto flex w-full max-w-2xl items-center justify-center">
         <div className="group relative w-full">
-          <div className="absolute -inset-0.5 rounded-xl bg-lightBg4 transition duration-1000 dark:bg-darkBg4" />
-          <input
+          {/* <div className="absolute -inset-0.5 rounded-xl bg-lightBg4 transition duration-1000 dark:bg-darkBg4" /> */}
+          <textarea
             ref={textareaRef}
-            className="relative w-full rounded-xl border-none bg-lightBg2 px-5 py-3.5 text-[15px] shadow-lg transition-all duration-300 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-lightBg4 dark:bg-darkBg2 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:bg-darkBg3 dark:focus:ring-darkBg4"
+            className="relative w-full rounded-xl border-none bg-lightBg2 px-5 py-3.5 text-[15px] shadow-lg transition-all duration-300 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-lightBg4 dark:bg-darkBg2 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:bg-darkBg3 dark:focus:ring-darkBg4 resize-none overflow-y-auto"
             placeholder="Type a message..."
-            value={input || ''}
+            value={input}
             onChange={handleInputChange}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
+            onKeyDown={handleKeyDown}
+            rows={1}
           />
         </div>
         <button
-          onClick={handleSend}
+          onClick={() => {
+            if (isInputNotEmpty) {
+              handleSend();
+              setInput('');
+              textareaRef.current?.focus();
+            }
+          }}
           className="group absolute right-2 flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-lightBg4 text-textPrimary shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:hover:transform-none dark:bg-darkBg4 dark:text-textSecondary"
           disabled={!isInputNotEmpty}
         >
