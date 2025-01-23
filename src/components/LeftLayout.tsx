@@ -7,7 +7,7 @@ import { useGuidelineChecksStore } from '../stores/guidelineChecksStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Message } from '../types/Message';
 import { PageReview } from '../types/PageReview';
-import { IoCreateOutline, IoChevronForwardOutline, IoChevronDownOutline } from 'react-icons/io5';
+import { IoCreateOutline, IoChevronForwardOutline, IoChevronDownOutline, IoLogOutOutline } from 'react-icons/io5';
 import { DarkModeToggle } from './DarkModeToggle';
 import { Card } from './ui/card';
 import { ScrollArea } from './ui/scroll-area';
@@ -18,7 +18,10 @@ import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 
 export default function LeftLayout() {
-  const { userId } = useAuthStore(useShallow(state => ({ userId: state.user_id })));
+  const { userId, logout } = useAuthStore(useShallow(state => ({ 
+    userId: state.user_id,
+    logout: state.logout 
+  })));
   const {
     allUserConversations,
     selectedConversationId,
@@ -189,6 +192,15 @@ export default function LeftLayout() {
                     <IoCreateOutline className="h-4 w-4 text-muted-foreground" />
                   </Button>
                   <DarkModeToggle />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={logout}
+                    aria-label="Logout"
+                    className="h-7 w-7 rounded-lg p-0"
+                  >
+                    <IoLogOutOutline className="h-4 w-4 text-muted-foreground" />
+                  </Button>
                 </div>
               </div>
             </div>
