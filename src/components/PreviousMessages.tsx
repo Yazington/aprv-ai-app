@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTheme } from 'next-themes';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useConversationStore } from '../stores/conversationsStore';
@@ -7,6 +8,7 @@ import { Message } from '../types/Message';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const PreviousMessages = () => {
+  const { resolvedTheme } = useTheme();
   const messageEndRef = useRef<HTMLDivElement>(null);
   const { selectedConversationMessages } = useConversationStore(
     useShallow(state => ({
@@ -153,7 +155,7 @@ const PreviousMessages = () => {
                 <div className="group relative items-center justify-center">
                   <div className="">
                     <img
-                      src="/Icon White.png"
+                      src={resolvedTheme === "light" ? "/Icon Black.png" : "/Icon White.png"}
                       alt="AI Assistant"
                       onError={e => {
                         const target = e.target as HTMLImageElement;
@@ -192,9 +194,10 @@ const PreviousMessages = () => {
                       className="h-10 w-10 rounded-full object-cover"
                       onError={e => {
                         const target = e.target as HTMLImageElement;
-                        target.src =
-                          'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXIiPjxwYXRoIGQ9Ik0xOSAyMWE3IDcgMCAxIDAtMTQgMCIvPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTAiIHI9IjQiLz48L3N2Zz4=';
-                        target.className = 'h-10 w-10 text-purple-400';
+                        const container = document.createElement('div');
+                        container.className = 'h-10 w-10 dark:invert';
+                        container.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user h-full w-full"><path d="M19 21a7 7 0 1 0-14 0"/><circle cx="12" cy="10" r="4"/></svg>`;
+                        target.replaceWith(container);
                       }}
                     />
                   </div>

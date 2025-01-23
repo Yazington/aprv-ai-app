@@ -1,21 +1,18 @@
 import { CredentialResponse, GoogleOAuthProvider } from '@react-oauth/google';
 import { useEffect } from 'react';
+import { ThemeProvider } from './components/ui/theme-provider';
 import { Chat } from './components/Chat';
-import ContractChecks from './components/ContractChecks';
-import Upload from './components/Upload';
+import ContractChecks from './components/RightLayout';
+import LeftLayout from './components/LeftLayout';
 import './index.css';
 import { apiClient } from './services/axiosConfig';
 import { useAuthStore } from './stores/authStore';
 import { NetworkLines } from './components/NetworkLines';
 import GoogleSignInButton from './components/GoogleSignInButton';
+import RightLayout from './components/RightLayout';
 
 function App() {
   const { access_token, exp, isLoggedIn, setAccessToken, setExp, setUserId, isExpired, logout, setIsLoggedIn } = useAuthStore();
-
-  // Add 'dark' class to the root to apply dark mode by default
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
-  }, []);
 
   useEffect(() => {
     setIsLoggedIn(!isExpired());
@@ -59,7 +56,12 @@ function App() {
   };
 
   return (
-    <GoogleOAuthProvider clientId="460411803550-aq1oq8hcss0t184ti7ui3odaabb8ntbu.apps.googleusercontent.com">
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="dark"
+      enableSystem={false}
+    >
+      <GoogleOAuthProvider clientId="460411803550-aq1oq8hcss0t184ti7ui3odaabb8ntbu.apps.googleusercontent.com">
       {!isLoggedIn && (
         <div className="login-container">
           <div className="network-background"></div>
@@ -120,19 +122,20 @@ function App() {
       {isLoggedIn && (
         <div className="flex h-screen w-full flex-col bg-gradient-to-br from-lightBg1 to-lightBg2 text-textPrimary subpixel-antialiased dark:from-darkBg1 dark:to-darkBg1">
           <div className="flex h-full">
-            <div className="h-full w-[240px] bg-lightBg2 dark:bg-darkBg1">
-              <Upload />
+            <div className="h-full bg-lightBg2 dark:bg-darkBg1">
+              <LeftLayout />
             </div>
             <div className="flex-1 bg-lightBg2 dark:bg-darkBg1">
               <Chat />
             </div>
             <div className="h-full w-[240px] bg-lightBg2 dark:bg-darkBg1">
-              <ContractChecks />
+              <RightLayout />
             </div>
           </div>
         </div>
       )}
-    </GoogleOAuthProvider>
+      </GoogleOAuthProvider>
+    </ThemeProvider>
   );
 }
 
