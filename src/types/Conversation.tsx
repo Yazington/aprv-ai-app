@@ -8,4 +8,5 @@ export interface Conversation {
   design_id?: string;
   created_at?: any;
   modified_at?: any;
+  iconSeed?: string;
 }

@@ -123,7 +123,7 @@ const PreviousMessages = () => {
               pre: ({ node, ...props }) => (
                 <pre
                   {...props}
-                  className="overflow-hidden rounded-lg bg-lightBg3 p-4 dark:bg-darkBg2"
+                  className="overflow-hidden rounded-lg bg-lightBg3 p-2.5 dark:bg-darkBg2"
                 />
               )
             }}
@@ -136,12 +136,12 @@ const PreviousMessages = () => {
   };
 
   return (
-    <div className="grid min-w-0 grid-cols-1 gap-6 overflow-hidden pb-20 text-sm">
+    <div className="grid min-w-0 grid-cols-1 gap-3 overflow-hidden pb-20 text-sm">
       <AnimatePresence>
         {regularMessages.map((message, index) => (
           <motion.div
             key={'previous-messages-' + index}
-            className={`grid basis-full grid-cols-[40px_1fr_40px] items-center justify-center gap-10 ${
+            className={`grid basis-full grid-cols-[40px_1fr_40px] items-center justify-center gap-4 ${
               message.is_from_human ? 'justify-end' : ''
             } ${message.isStreaming ? 'animate-fade-in' : ''}`}
             variants={messageVariants}
@@ -169,7 +169,7 @@ const PreviousMessages = () => {
               )}
             </div>
             <motion.div
-              className={`group relative min-w-0 break-words p-4 ${
+              className={`group relative min-w-0 break-words p-2.5 ${
                 message.is_from_human
                   ? 'rounded-2xl rounded-tr-sm bg-lightBg4 shadow-md dark:bg-darkBg4'
                   : 'rounded-2xl rounded-tl-sm bg-lightBg3 shadow-md dark:bg-darkBg3'

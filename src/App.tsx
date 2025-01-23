@@ -1,17 +1,20 @@
 import { CredentialResponse, GoogleOAuthProvider } from '@react-oauth/google';
 import { useEffect } from 'react';
+import { IoMenuOutline } from 'react-icons/io5';
 import { ThemeProvider } from './components/ui/theme-provider';
 import { Chat } from './components/Chat';
 import LeftLayout from './components/LeftLayout';
 import './index.css';
 import { apiClient } from './services/axiosConfig';
 import { useAuthStore } from './stores/authStore';
+import { useUIStore } from './stores/uiStore';
 import { NetworkLines } from './components/NetworkLines';
 import GoogleSignInButton from './components/GoogleSignInButton';
 import RightLayout from './components/RightLayout';
 
 function App() {
   const { access_token, exp, isLoggedIn, setAccessToken, setExp, setUserId, isExpired, logout, setIsLoggedIn } = useAuthStore();
+  const { isSidebarExpanded, toggleSidebar } = useUIStore();
 
   useEffect(() => {
     setIsLoggedIn(!isExpired());
@@ -119,15 +122,34 @@ function App() {
         </div>
       )}
       {isLoggedIn && (
-        <div className="flex h-screen w-full flex-col bg-gradient-to-br from-lightBg1 to-lightBg2 text-textPrimary subpixel-antialiased dark:from-darkBg1 dark:to-darkBg1">
-          <div className="flex h-full">
-            <div className="h-full bg-lightBg2 dark:bg-darkBg1">
+        <div className="relative h-screen w-full overflow-hidden bg-gradient-to-br from-lightBg1 to-lightBg2 text-textPrimary subpixel-antialiased dark:from-darkBg1 dark:to-darkBg1">
+          {/* Main content wrapper */}
+          <div className="relative flex h-full flex-col md:flex-row">
+            {/* Menu button - visible only on mobile */}
+            <button 
+              onClick={toggleSidebar}
+              className="fixed left-4 top-4 z-[60] block rounded-lg bg-gray-100 p-1.5 md:p-2 shadow-lg dark:bg-darkBg2 md:hidden"
+            >
+              <IoMenuOutline className="h-4 w-4 md:h-6 md:w-6 text-gray-700 dark:text-textPrimary" />
+            </button>
+
+            {/* Sidebar with responsive behavior */}
+            <div 
+              className={`fixed md:relative md:block transform transition-all duration-300 ease-in-out
+                ${isSidebarExpanded ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                z-50 h-full w-full md:w-64
+              `}
+            >
               <LeftLayout />
             </div>
-            <div className="flex-1 bg-lightBg2 dark:bg-darkBg1">
+
+            {/* Main content area */}
+            <div className="flex-1 overflow-hidden bg-lightBg2 pt-16 md:pt-0 dark:bg-darkBg1">
               <Chat />
             </div>
-            <div className="h-full w-[240px] bg-lightBg2 dark:bg-darkBg1">
+
+            {/* Right sidebar - hidden on mobile, visible on desktop */}
+            <div className="hidden md:block md:w-[240px] bg-lightBg2 dark:bg-darkBg1">
               <RightLayout />
             </div>
           </div>

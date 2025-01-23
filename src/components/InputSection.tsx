@@ -39,13 +39,12 @@ const InputSection = ({ input, setInput, handleSend }: Props) => {
   };
 
   return (
-    <div className="flex w-full transform-gpu py-4">
-      <div className="relative mx-auto flex w-full max-w-2xl items-center justify-center">
+    <div className="flex w-full transform-gpu py-2 md:py-4">
+      <div className="relative mx-auto flex w-full max-w-2xl items-center justify-center px-2 md:px-0">
         <div className="group relative w-full">
-          {/* <div className="absolute -inset-0.5 rounded-xl bg-lightBg4 transition duration-1000 dark:bg-darkBg4" /> */}
           <textarea
             ref={textareaRef}
-            className="relative w-full rounded-xl border-none bg-lightBg2 px-5 py-3.5 text-[15px] shadow-lg transition-all duration-300 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-lightBg4 dark:bg-darkBg2 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:bg-darkBg3 dark:focus:ring-darkBg4 resize-none overflow-y-auto"
+            className="relative w-full rounded-xl border-none bg-lightBg2 px-3 py-2.5 md:px-5 md:py-3.5 text-[15px] shadow-lg transition-all duration-300 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-lightBg4 dark:bg-darkBg2 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:bg-darkBg3 dark:focus:ring-darkBg4 resize-none overflow-y-auto"
             placeholder="Type a message..."
             value={input}
             onChange={handleInputChange}
@@ -61,7 +60,7 @@ const InputSection = ({ input, setInput, handleSend }: Props) => {
               textareaRef.current?.focus();
             }
           }}
-          className="group absolute right-2 flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-lightBg4 text-textPrimary shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:hover:transform-none dark:bg-darkBg4 dark:text-textSecondary"
+          className="group absolute right-2 flex h-11 w-11 md:h-10 md:w-10 items-center justify-center overflow-hidden rounded-xl bg-lightBg4 text-textPrimary shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:hover:transform-none dark:bg-darkBg4 dark:text-textSecondary"
           disabled={!isInputNotEmpty}
         >
           <div className="flex h-full w-full items-center justify-center rounded-xl px-2.5 py-2 transition-all duration-300 group-hover:bg-lightBg4 dark:group-hover:bg-darkBg4">
@@ -70,7 +69,7 @@ const InputSection = ({ input, setInput, handleSend }: Props) => {
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              className="h-5 w-5 transform stroke-2 transition-transform duration-300 group-hover:translate-x-0.5"
+              className="h-6 w-6 md:h-5 md:w-5 transform stroke-2 transition-transform duration-300 group-hover:translate-x-0.5"
             >
               <path
                 strokeLinecap="round"

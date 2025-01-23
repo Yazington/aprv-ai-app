@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Message } from '../types/Message';
 import InputSection from './InputSection';
-import { Tools } from './Tools';
+import { ToolsCommand } from './ToolsCommand';
 import { apiClient } from '../services/axiosConfig';
 import { useShallow } from 'zustand/react/shallow';
 import { useConversationStore } from '../stores/conversationsStore';
@@ -175,14 +175,15 @@ export const Chat = () => {
 
   return (
     <div className="flex h-screen flex-col">
-      <div className="relative flex h-full flex-col p-10">
+      <div className="relative flex h-full flex-col p-2 pb-safe md:p-4 lg:p-6">
         <div className="flex-1 overflow-hidden">
-          <div className="h-full overflow-y-auto bg-lightBg2 shadow-md [--scrollbar-left:0] dark:bg-darkBg1">
+          <div className="h-full overflow-y-auto rounded-lg bg-lightBg2 shadow-md [--scrollbar-left:0] dark:bg-darkBg1">
             <PreviousMessages />
           </div>
         </div>
-        <div className="sticky bottom-0 mt-auto">
-          <Tools />
+        <div className="sticky bottom-0 mt-auto w-full max-w-full bg-gradient-to-t from-lightBg2/95 to-lightBg2/80 pb-safe px-2 pt-2 backdrop-blur-sm dark:from-darkBg1/95 dark:to-darkBg1/80">
+          <ToolsCommand />
+          <div className="h-2" /> {/* Spacer */}
           <InputSection
             input={selectedConversationUserInput}
             setInput={setSelectedConversationUserInput}

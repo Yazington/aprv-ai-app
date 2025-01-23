@@ -5,6 +5,9 @@ export default {
     './src/**/*.{js,ts,jsx,tsx}',
   ],
   darkMode: 'class',
+  plugins: [
+    require('tailwindcss-safe-area'),
+  ],
   theme: {
     extend: {
       container: {
@@ -96,6 +99,14 @@ export default {
           from: { transform: "translateX(100%)" },
           to: { transform: "translateX(0)" },
         },
+        slideDown: {
+          from: { height: 0, opacity: 0 },
+          to: { height: "var(--radix-collapsible-content-height)", opacity: 1 },
+        },
+        slideUp: {
+          from: { height: "var(--radix-collapsible-content-height)", opacity: 1 },
+          to: { height: 0, opacity: 0 },
+        },
       },
       animation: {
         tilt: 'tilt 10s infinite linear',
@@ -108,7 +119,36 @@ export default {
         "slide-in-from-bottom": "slide-in-from-bottom 0.2s ease-out",
         "slide-in-from-left": "slide-in-from-left 0.2s ease-out",
         "slide-in-from-right": "slide-in-from-right 0.2s ease-out",
+        "slideDown": "slideDown 0.3s ease-out",
+        "slideUp": "slideUp 0.3s ease-out",
       },
     },
   },
+  variants: {
+    extend: {
+      display: ['group-hover'],
+    },
+  },
+  plugins: [
+    function({ addUtilities }) {
+      addUtilities({
+        '.scrollbar-none': {
+          '-ms-overflow-style': 'none',
+          'scrollbar-width': 'none',
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          }
+        },
+        '.pb-safe': {
+          'padding-bottom': 'env(safe-area-inset-bottom)'
+        },
+        '.pt-safe': {
+          'padding-top': 'env(safe-area-inset-top)'
+        },
+        '.touch-callout-none': {
+          '-webkit-touch-callout': 'none'
+        }
+      })
+    }
+  ]
 }
