@@ -18,7 +18,7 @@ const initialState = {
 
 export const useUIStore = create<UIStore>()(
   persist(
-    (set, get) => ({
+    (set, _) => ({
       ...initialState,
       setIsSidebarExpanded: (expanded: boolean) => set({ isSidebarExpanded: expanded }),
       toggleSection: (sectionId: string) =>

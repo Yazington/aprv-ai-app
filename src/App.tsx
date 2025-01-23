@@ -2,7 +2,6 @@ import { CredentialResponse, GoogleOAuthProvider } from '@react-oauth/google';
 import { useEffect } from 'react';
 import { ThemeProvider } from './components/ui/theme-provider';
 import { Chat } from './components/Chat';
-import ContractChecks from './components/RightLayout';
 import LeftLayout from './components/LeftLayout';
 import './index.css';
 import { apiClient } from './services/axiosConfig';

@@ -22,7 +22,7 @@ function truncateMiddle(text: string, maxLength: number): string {
 }
 
 export default function LeftLayout() {
-  const { userId, logout } = useAuthStore(useShallow(state => ({ userId: state.user_id, logout: state.logout })));
+  const { userId } = useAuthStore(useShallow(state => ({ userId: state.user_id, logout: state.logout })));
   const {
     allUserConversations,
     selectedConversationId,
